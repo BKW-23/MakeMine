@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { Sparkles, ShoppingBag, Menu, X } from "lucide-react";
+import { ShoppingBag, Menu, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import GiftAssistant from "@/components/GiftAssistant";
 
@@ -22,8 +22,8 @@ export default function Layout() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="flex items-center gap-2 group">
-              <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground engraved">
-                <Sparkles className="h-5 w-5" />
+              <span className="relative grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-primary text-primary-foreground engraved">
+                <img src="/favicon.png" alt="" className="h-full w-full object-cover" />
               </span>
               <span className="font-display text-lg font-bold tracking-tight">
                 Make<span className="text-primary">Mine</span>
