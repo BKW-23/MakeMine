@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&family=Dancing+Script:wght@600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 36 38% 97%;
+    --foreground: 340 52% 30%;
+    --card: 0 0% 100%;
+    --card-foreground: 340 52% 30%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 340 52% 30%;
+    --primary: 330 80% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 33 32% 94%;
+    --secondary-foreground: 340 52% 30%;
+    --muted: 33 28% 93%;
+    --muted-foreground: 340 22% 46%;
+    --accent: 350 85% 73%;
+    --accent-foreground: 340 52% 30%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 33 24% 86%;
+    --input: 33 24% 88%;
+    --ring: 330 80% 60%;
+    --chart-1: 330 80% 60%;
+    --chart-2: 350 85% 73%;
+    --chart-3: 280 45% 60%;
+    --chart-4: 168 55% 48%;
+    --chart-5: 220 70% 60%;
+    --radius: 0.9rem;
+    --font-heading: "Fredoka", ui-sans-serif, system-ui, sans-serif;
+    --font-body: "Quicksand", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Fredoka", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sidebar-background: 36 38% 97%;
+    --sidebar-foreground: 340 52% 30%;
+    --sidebar-primary: 330 80% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 33 32% 94%;
+    --sidebar-accent-foreground: 340 52% 30%;
+    --sidebar-border: 33 24% 86%;
+    --sidebar-ring: 330 80% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+  ::selection {
+    background: hsl(var(--primary) / 0.22);
+    color: hsl(var(--foreground));
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: hsl(var(--card) / 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.9);
+    box-shadow: 0 8px 30px -12px hsl(28 30% 30% / 0.12);
+  }
+  .engraved {
+    box-shadow: inset 0 1px 0 hsl(var(--primary) / 0.2), inset 0 -1px 0 hsl(28 20% 12% / 0.08);
+  }
+  .text-glow {
+    text-shadow: 0 2px 18px hsl(var(--primary) / 0.18);
+  }
+  .shimmer {
+    background: linear-gradient(110deg, hsl(33 28% 93%) 30%, hsl(33 28% 88%) 50%, hsl(33 28% 93%) 70%);
+    background-size: 200% 100%;
+    animation: shimmer 2.4s infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .pulse-ring {
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+  @keyframes pulse-ring {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.45); }
+    50% { box-shadow: 0 0 0 10px hsl(var(--primary) / 0); }
+  }
+}
