@@ -62,7 +62,7 @@ Stack triển khai hiện tại:
   trigger profile, RLS và grants ban đầu.
 - [supabase/migrations/002_security_hardening.sql](supabase/migrations/002_security_hardening.sql):
   giới hạn quyền đọc dữ liệu khách hàng và validation đơn hàng.
-- [supabase/seed.sql](supabase/seed.sql): một sản phẩm mẫu với ảnh
+- [supabase/seed.sql](supabase/seed.sql): hai sản phẩm mẫu dùng chung ảnh
   `/sample-product.png`.
 
 Các migration và seed này được viết để có thể chạy lại an toàn trong Supabase

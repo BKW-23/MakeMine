@@ -16,3 +16,17 @@ on conflict (slug) do update set
   fonts = excluded.fonts,
   featured = excluded.featured,
   stock = excluded.stock;
+
+insert into public.products (name, slug, category, base_price, short_description, image_url, customizable, colors, fonts, featured, stock) values
+('Kẹp tóc cá nhân hóa', 'kep-toc-ca-nhan-hoa', 'kẹp tóc', 69000, 'Kẹp tóc cá nhân hóa, khắc tên theo yêu cầu', '/sample-product.png', true, array['hồng'], array['Quicksand'], false, 45)
+on conflict (slug) do update set
+  name = excluded.name,
+  category = excluded.category,
+  base_price = excluded.base_price,
+  short_description = excluded.short_description,
+  image_url = excluded.image_url,
+  customizable = excluded.customizable,
+  colors = excluded.colors,
+  fonts = excluded.fonts,
+  featured = excluded.featured,
+  stock = excluded.stock;
