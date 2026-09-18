@@ -25,7 +25,7 @@ const sampleProducts = [{
   customizable: true,
   colors: ["hồng"],
   fonts: ["Quicksand"],
-  featured: false,
+  featured: true,
   stock: 45,
 }];
 

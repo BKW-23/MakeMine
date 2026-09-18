@@ -18,7 +18,7 @@ on conflict (slug) do update set
   stock = excluded.stock;
 
 insert into public.products (name, slug, category, base_price, short_description, image_url, customizable, colors, fonts, featured, stock) values
-('Kẹp tóc cá nhân hóa', 'kep-toc-ca-nhan-hoa', 'kẹp tóc', 69000, 'Kẹp tóc cá nhân hóa, khắc tên theo yêu cầu', '/sample-product.png', true, array['hồng'], array['Quicksand'], false, 45)
+('Kẹp tóc cá nhân hóa', 'kep-toc-ca-nhan-hoa', 'kẹp tóc', 69000, 'Kẹp tóc cá nhân hóa, khắc tên theo yêu cầu', '/sample-product.png', true, array['hồng'], array['Quicksand'], true, 45)
 on conflict (slug) do update set
   name = excluded.name,
   category = excluded.category,
