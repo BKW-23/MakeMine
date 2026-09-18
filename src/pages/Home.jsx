@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Wand2, Sparkles } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import ProductCard from "@/components/ProductCard";
 import { heroImage, CATEGORIES } from "@/lib/productImages";
 
@@ -12,7 +12,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    base44.entities.Product.list("-created_date", 60).then((all) => {
+    api.entities.Product.list("-created_date", 60).then((all) => {
       const f = all.filter((p) => p.featured);
       setFeatured(f.length ? f : all.slice(0, 6));
       setLoading(false);
@@ -24,7 +24,7 @@ export default function Home() {
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <img src={heroImage} alt="" className="h-full w-full object-cover opacity-30" />
+          {heroImage && <img src={heroImage} alt="" className="h-full w-full object-cover opacity-30" />}
           <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background/75 to-background" />
         </div>
         <div className="pastel-blobs opacity-70">

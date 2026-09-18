@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { Plus, Loader2, Package, ClipboardList } from "lucide-react";
 import { imageFor, formatVND, CATEGORIES } from "@/lib/productImages";
 
@@ -15,8 +15,8 @@ export default function Admin() {
   const load = () => {
     setLoading(true);
     Promise.all([
-      base44.entities.Product.list("-created_date", 60),
-      base44.entities.Order.list("-created_date", 60),
+      api.entities.Product.list("-created_date", 60),
+      api.entities.Order.list("-created_date", 60),
     ]).then(([p, o]) => {
       setProducts(p);
       setOrders(o);
@@ -27,13 +27,13 @@ export default function Admin() {
   useEffect(() => { load(); }, []);
 
   const updateOrderStatus = async (id, status) => {
-    await base44.entities.Order.update(id, { status });
+    await api.entities.Order.update(id, { status });
     load();
   };
 
   const deleteProduct = async (id) => {
     if (!confirm("Xoá sản phẩm này?")) return;
-    await base44.entities.Product.delete(id);
+    await api.entities.Product.delete(id);
     load();
   };
 
@@ -124,7 +124,7 @@ function ProductForm({ onSaved }) {
     setSaving(true);
     setErr("");
     try {
-      await base44.entities.Product.create({
+      await api.entities.Product.create({
         name: form.name,
         slug: form.slug || form.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/\s+/g, "-"),
         category: form.category,

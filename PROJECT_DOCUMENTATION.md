@@ -4,7 +4,7 @@
 
 MakeMine là một ứng dụng thương mại điện tử theo hướng quà tặng cá nhân hóa, tập trung vào các sản phẩm như móc khóa, gương, lược và kẹp tóc có thể khắc tên, màu sắc, font chữ và lời chúc tùy chỉnh. Sản phẩm hướng tới người dùng trẻ, với trải nghiệm mua sắm nhẹ, hiện đại và có tính tương tác cao nhờ các tính năng AI gợi ý quà tặng.
 
-Tên thương hiệu được thể hiện trong giao diện: "Make It Yours" / "Co-Creation Lab". Dự án dựa trên Base44 platform, tích hợp frontend React + backend entities/functions và SDK của Base44 để quản lý dữ liệu, xác thực người dùng và gọi AI.
+Tên thương hiệu được thể hiện trong giao diện: "Make It Yours" / "Co-Creation Lab". Dự án dựa trên Supabase platform, tích hợp frontend React + backend entities/functions và SDK của Supabase để quản lý dữ liệu, xác thực người dùng và gọi AI.
 
 ### Mục tiêu chính
 
@@ -19,7 +19,7 @@ Tên thương hiệu được thể hiện trong giao diện: "Make It Yours" / 
 
 ## 2. Công nghệ sử dụng
 
-Dự án này là một ứng dụng frontend React chạy trên Vite, tích hợp với Base44 SDK và Base44 backend.
+Dự án này là một ứng dụng frontend React chạy trên Vite, tích hợp với Supabase SDK và Supabase backend.
 
 ### Stack chính
 
@@ -32,8 +32,8 @@ Dự án này là một ứng dụng frontend React chạy trên Vite, tích h�
 - Radix UI
 - Framer Motion
 - Lucide React
-- Base44 SDK
-- Base44 functions / entities / auth
+- Supabase SDK
+- Supabase functions / entities / auth
 
 ### Công cụ hỗ trợ
 
@@ -48,7 +48,7 @@ Dự án này là một ứng dụng frontend React chạy trên Vite, tích h�
 - [vite.config.js](vite.config.js)
 - [tailwind.config.js](tailwind.config.js)
 - [src/App.jsx](src/App.jsx)
-- [src/api/base44Client.js](src/api/base44Client.js)
+- [src/api/supabaseClient.js](src/api/supabaseClient.js)
 
 ---
 
@@ -58,9 +58,9 @@ Dự án có 2 tầng chính:
 
 1. Frontend React
    - Render UI, routing, state, tương tác người dùng
-   - Gọi Base44 SDK để lấy dữ liệu, tạo đơn hàng, xác thực, gọi function AI
+   - Gọi Supabase SDK để lấy dữ liệu, tạo đơn hàng, xác thực, gọi function AI
 
-2. Backend Base44
+2. Backend Supabase
    - Entities: Product, Order, ChatSuggestion, User
    - Functions: generateGreeting, giftSuggestion
    - Auth và app public settings
@@ -68,7 +68,7 @@ Dự án có 2 tầng chính:
 
 ### Cấu trúc tổng thể
 
-- Root config / Base44 data model: [$root/config.json]($root/config.json), [$root/entities]($root/entities), [$root/functions]($root/functions)
+- Root config / Supabase data model: [$root/config.json]($root/config.json), [$root/entities]($root/entities), [$root/functions]($root/functions)
 - Frontend source: [src](src)
 - UI component library: [src/components/ui](src/components/ui)
 - Pages: [src/pages](src/pages)
@@ -86,7 +86,7 @@ Dự án có 2 tầng chính:
 - [components.json](components.json): cấu hình component system
 - [eslint.config.js](eslint.config.js): lint rules
 - [jsconfig.json](jsconfig.json): alias config
-- [$root/config.json]($root/config.json): Base44 project config
+- [$root/config.json]($root/config.json): Supabase project config
 
 ### 4.2 src/
 
@@ -96,7 +96,7 @@ Dự án có 2 tầng chính:
 
 #### API và auth
 
-- [src/api/base44Client.js](src/api/base44Client.js): client Base44 SDK
+- [src/api/supabaseClient.js](src/api/supabaseClient.js): client Supabase SDK
 - [src/lib/AuthContext.jsx](src/lib/AuthContext.jsx): quản lý auth và public settings
 - [src/lib/cart.jsx](src/lib/cart.jsx): cart store lưu localStorage
 - [src/lib/app-params.js](src/lib/app-params.js): appId/token configuration
@@ -129,7 +129,7 @@ Dự án có 2 tầng chính:
 ### 5.1 Luồng xem sản phẩm
 
 - Người dùng truy cập trang chủ.
-- [src/pages/Home.jsx](src/pages/Home.jsx) gọi `base44.entities.Product.list(...)` để lấy danh sách sản phẩm.
+- [src/pages/Home.jsx](src/pages/Home.jsx) gọi `supabase.entities.Product.list(...)` để lấy danh sách sản phẩm.
 - Trang chủ hiển thị banner và sản phẩm nổi bật.
 - Người dùng click vào danh mục hoặc vào sản phẩm để đi đến trang chi tiết.
 
@@ -139,7 +139,7 @@ Dự án có 2 tầng chính:
 - Nếu `customizable` là true, người dùng có thể nhập tên, chọn màu, font và lời chúc.
 - Khi bấm "Thêm vào giỏ", dữ liệu được lưu trong [src/lib/cart.jsx](src/lib/cart.jsx).
 - Trên giỏ hàng [src/pages/Cart.jsx](src/pages/Cart.jsx), hệ thống hiển thị chi tiết sản phẩm và form thông tin người nhận.
-- Khi submit, hệ thống tạo một `Order` trong Base44 entity:
+- Khi submit, hệ thống tạo một `Order` trong Supabase entity:
   - `customer_name`
   - `customer_phone`
   - `customer_email`
@@ -161,7 +161,7 @@ Dự án có 2 tầng chính:
 
 - Người dùng mở floating assistant trong [src/components/GiftAssistant.jsx](src/components/GiftAssistant.jsx).
 - Form nhận 3 input: dịp tặng, người nhận, ngân sách.
-- Gọi Base44 function `giftSuggestion` ở [$root/functions/giftSuggestion/entry.ts]($root/functions/giftSuggestion/entry.ts).
+- Gọi Supabase function `giftSuggestion` ở [$root/functions/giftSuggestion/entry.ts]($root/functions/giftSuggestion/entry.ts).
 - Function:
   - lấy danh sách sản phẩm từ entity `Product`
   - tạo prompt cho LLM
@@ -172,12 +172,12 @@ Dự án có 2 tầng chính:
 ### 5.5 Luồng tạo lời chúc
 
 - Trên chi tiết sản phẩm, `GreetingGenerator` cho phép tạo lời chúc theo người nhận, mối quan hệ, dịp, sở thích và keywords.
-- Gọi Base44 function `generateGreeting` ở [$root/functions/generateGreeting/entry.ts]($root/functions/generateGreeting/entry.ts).
-- Function kiểm tra auth user bằng `base44.auth.me()`, yêu cầu thông tin tối thiểu, gọi LLM và trả về 3 lời chúc phù hợp để in lên sản phẩm.
+- Gọi Supabase function `generateGreeting` ở [$root/functions/generateGreeting/entry.ts]($root/functions/generateGreeting/entry.ts).
+- Function kiểm tra auth user bằng `supabase.auth.me()`, yêu cầu thông tin tối thiểu, gọi LLM và trả về 3 lời chúc phù hợp để in lên sản phẩm.
 
 ---
 
-## 6. Entity và dữ liệu Base44
+## 6. Entity và dữ liệu Supabase
 
 ### 6.1 Entity Product
 
@@ -233,7 +233,7 @@ File: [$root/entities/User.json]($root/entities/User.json)
 
 ---
 
-## 7. Base44 Functions
+## 7. Supabase Functions
 
 ### 7.1 giftSuggestion
 
@@ -253,7 +253,7 @@ File: [$root/functions/generateGreeting/entry.ts]($root/functions/generateGreeti
 
 Nhiệm vụ:
 
-- xác thực người dùng qua `base44.auth.me()`
+- xác thực người dùng qua `supabase.auth.me()`
 - nhận dữ liệu lời chúc: recipient, relationship, occasion, hobbies, keywords, productName
 - tạo 3 lời chúc ngắn, tự nhiên, phù hợp để in lên đồ quà
 - trả về JSON `greetings`
@@ -266,12 +266,12 @@ Auth được quản lý trong [src/lib/AuthContext.jsx](src/lib/AuthContext.jsx
 
 Cách hoạt động:
 
-- Gọi `base44.app.getPublicSettings()` để kiểm tra cấu hình app công khai.
-- Nếu có token, gọi `base44.auth.me()` để xác định trạng thái đăng nhập.
-- Nếu chưa đăng nhập hoặc lỗi auth, redirect tới login bằng `base44.auth.redirectToLogin(...)`.
+- Gọi `supabase.app.getPublicSettings()` để kiểm tra cấu hình app công khai.
+- Nếu có token, gọi `supabase.auth.me()` để xác định trạng thái đăng nhập.
+- Nếu chưa đăng nhập hoặc lỗi auth, redirect tới login bằng `supabase.auth.redirectToLogin(...)`.
 - Nếu user không đăng ký, hiển thị [src/components/UserNotRegisteredError.jsx](src/components/UserNotRegisteredError.jsx).
 
-Điểm quan trọng: trong Base44 app, `appParams` chứa `appId`, `token`, `functionsVersion`, `appBaseUrl` được đọc trong [src/lib/app-params.js](src/lib/app-params.js).
+Điểm quan trọng: trong Supabase app, `appParams` chứa `appId`, `token`, `functionsVersion`, `appBaseUrl` được đọc trong [src/lib/app-params.js](src/lib/app-params.js).
 
 ---
 
@@ -309,42 +309,42 @@ Cách hoạt động:
 Theo [README.md](README.md), quy trình local dev là:
 
 ```bash
-base44 login
-base44 link
-base44 dev
+supabase login
+supabase link
+supabase dev
 ```
 
 ### Lưu ý quan trọng
 
-- Mỗi clone mới cần `base44 link`.
-- Không nên chạy `npm run dev` một mình khi làm việc với Base44 backend vì sẽ thiếu proxy / API và dẫn đến gọi sai backend.
-- `base44 dev` tự chạy Vite thông qua `site.serveCommand` trong [$root/config.json]($root/config.json).
+- Mỗi clone mới cần `supabase link`.
+- Không nên chạy `npm run dev` một mình khi làm việc với Supabase backend vì sẽ thiếu proxy / API và dẫn đến gọi sai backend.
+- `supabase dev` tự chạy Vite thông qua `site.serveCommand` trong [$root/config.json]($root/config.json).
 - Nếu chưa publish app, UI có thể không load đúng cách khi dev local.
 
 ### Frontend-only mode
 
 ```bash
-base44 dev --remote
+supabase dev --remote
 ```
 
 Mode này kết nối với backend hosted production, dùng cho frontend mà không cần local backend toàn bộ.
 
 ---
 
-## 11. Cấu hình Base44 và publish
+## 11. Cấu hình Supabase và publish
 
 File cấu hình chính:
 
 - [$root/config.json]($root/config.json)
 
-Cấu hình gốc cho app Base44 bao gồm:
+Cấu hình gốc cho app Supabase bao gồm:
 
 - `installCommand`: `npm install`
 - `buildCommand`: `npm run build`
 - `serveCommand`: `npm run dev`
 - `outputDirectory`: `./dist`
 
-Sau khi push code lên repo, app cần được publish qua dashboard Base44 thay vì deploy CLI trực tiếp, như hướng dẫn trong [README.md](README.md).
+Sau khi push code lên repo, app cần được publish qua dashboard Supabase thay vì deploy CLI trực tiếp, như hướng dẫn trong [README.md](README.md).
 
 ---
 
@@ -371,7 +371,7 @@ Sau khi push code lên repo, app cần được publish qua dashboard Base44 tha
 2. Xem lại item và customization.
 3. Nhập thông tin nhận hàng.
 4. Xác nhận preview khắc.
-5. Tạo `Order` trong Base44.
+5. Tạo `Order` trong Supabase.
 6. Chuyển sang trạng thái thành công, hiển thị mã đơn hàng.
 
 ### 12.4 Theo dõi và quản lý đơn
@@ -383,7 +383,7 @@ Sau khi push code lên repo, app cần được publish qua dashboard Base44 tha
 
 ## 13. Điểm mạnh của project
 
-- Tích hợp Base44 mạnh, giảm thời gian setup backend và auth.
+- Tích hợp Supabase mạnh, giảm thời gian setup backend và auth.
 - Thương mại điện tử rõ ràng, phù hợp với mô hình quà tặng cá nhân hóa.
 - AI assistant mang tính cạnh tranh và tạo trải nghiệm khác biệt.
 - Có admin quản trị trực tiếp trên frontend.
@@ -404,7 +404,7 @@ Sau khi push code lên repo, app cần được publish qua dashboard Base44 tha
 
 ## 15. Tóm tắt ngắn
 
-MakeMine là một app thương mại điện tử quà tặng cá nhân hóa, chạy trên React + Vite + Base44, với các tính năng chính: danh mục sản phẩm, tùy biến khắc tên, AI gợi ý quà, giỏ hàng, đặt hàng, quản trị sản phẩm và đơn hàng. Dự án kết hợp frontend hiện đại với backend entity/function native của Base44 và AI integration, tạo nên trải nghiệm bán hàng và tư vấn quà tặng theo hướng người dùng trẻ, cá nhân hóa cao.
+MakeMine là một app thương mại điện tử quà tặng cá nhân hóa, chạy trên React + Vite + Supabase, với các tính năng chính: danh mục sản phẩm, tùy biến khắc tên, AI gợi ý quà, giỏ hàng, đặt hàng, quản trị sản phẩm và đơn hàng. Dự án kết hợp frontend hiện đại với backend entity/function native của Supabase và AI integration, tạo nên trải nghiệm bán hàng và tư vấn quà tặng theo hướng người dùng trẻ, cá nhân hóa cao.
 
 ---
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import ProductCard from "@/components/ProductCard";
 import { CATEGORIES } from "@/lib/productImages";
 
@@ -14,7 +14,7 @@ export default function Catalog() {
 
   useEffect(() => {
     setLoading(true);
-    base44.entities.Product.list("-created_date", 60).then((all) => {
+    api.entities.Product.list("-created_date", 60).then((all) => {
       setProducts(all);
       setLoading(false);
     }).catch(() => setLoading(false));

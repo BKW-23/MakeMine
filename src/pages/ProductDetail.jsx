@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Minus, Plus, ShoppingBag, Check } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/client";
 import { useCart } from "@/lib/cart";
 import { imageFor, formatVND } from "@/lib/productImages";
 import GreetingGenerator from "@/components/GreetingGenerator";
@@ -24,7 +24,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     setLoading(true);
-    base44.entities.Product.list("-created_date", 60).then((all) => {
+    api.entities.Product.list("-created_date", 60).then((all) => {
       const p = all.find((x) => x.slug === slug || x.id === slug);
       setProduct(p || null);
       if (p) {
