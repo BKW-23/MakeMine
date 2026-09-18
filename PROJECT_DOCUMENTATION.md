@@ -282,7 +282,7 @@ Trong Supabase Authentication, cấu hình Site URL và Redirect URLs cho:
 ```text
 http://localhost:5173
 http://127.0.0.1:5173
-https://YOUR_VERCEL_DOMAIN.vercel.app
+https://makeminee.vercel.app
 ```
 
 Nếu bật Google OAuth, cấu hình provider trong Supabase và thêm callback URL
