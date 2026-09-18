@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    base44.auth.consumeAuthCallback();
     checkUserAuth();
   }, []);
 

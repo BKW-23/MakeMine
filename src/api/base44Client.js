@@ -42,6 +42,23 @@ const saveSession = (session) => {
   else localStorage.removeItem(sessionKey);
 };
 
+const consumeAuthCallback = () => {
+  const hash = new URLSearchParams(window.location.hash.slice(1));
+  const accessToken = hash.get("access_token");
+  const refreshToken = hash.get("refresh_token");
+  if (!accessToken) return null;
+
+  const session = {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    expires_in: Number(hash.get("expires_in") || 3600),
+    token_type: hash.get("token_type") || "bearer",
+  };
+  saveSession(session);
+  window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+  return session;
+};
+
 const authHeaders = () => {
   const session = getSession();
   return {
@@ -140,10 +157,12 @@ const auth = {
     return session;
   },
   async register({ email, password }) {
-    return supabaseRequest("/auth/v1/signup", {
+    const result = await supabaseRequest("/auth/v1/signup", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
+    if (result?.access_token) saveSession(result);
+    return result;
   },
   async verifyOtp({ email, otpCode }) {
     const session = await supabaseRequest("/auth/v1/verify", {
@@ -162,12 +181,15 @@ const auth = {
   async resetPasswordRequest(email) {
     return supabaseRequest("/auth/v1/recover", {
       method: "POST",
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({
+        email,
+        redirect_to: `${window.location.origin}/reset-password`,
+      }),
     });
   },
   async resetPassword({ newPassword }) {
     const session = getSession();
-    if (!session?.access_token) throw new Error("Reset link expired");
+    if (!session?.access_token) throw new Error("Reset link expired or invalid");
     return supabaseRequest("/auth/v1/user", {
       method: "PUT",
       body: JSON.stringify({ password: newPassword }),
@@ -184,6 +206,7 @@ const auth = {
   redirectToLogin(returnTo) {
     window.location.href = `/login?returnTo=${encodeURIComponent(returnTo || "/")}`;
   },
+  consumeAuthCallback,
 };
 
 export const base44 = { entities: { Product: products, Order: orders }, functions, auth };
