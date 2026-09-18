@@ -8,9 +8,15 @@ admin operations, and Gemini calls run through controlled server endpoints.
 
 1. Install Node.js 20+.
 2. Install dependencies with `pnpm install` or `npm install`.
-3. Apply `supabase/migrations/001_init.sql`, then
-   `supabase/migrations/002_security_hardening.sql` in Supabase.
-4. Run `supabase/seed.sql` to add the sample catalog.
+3. For a new Supabase project, apply
+   `supabase/migrations/001_init.sql`, then
+   `supabase/migrations/002_security_hardening.sql`.
+   If `public.profiles` (or the other tables) already exists, do not run
+   `001_init.sql` again; it has already been applied. Run only the hardening
+   migration if it has not been applied yet.
+4. Run `supabase/seed.sql` to add or update the sample catalog. The seed uses
+   the product slug as a conflict key, so it can be re-run without creating a
+   duplicate sample.
 5. Start the frontend with `npm run dev`.
 
 ## Environment variables

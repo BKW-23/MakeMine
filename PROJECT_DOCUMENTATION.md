@@ -1,424 +1,341 @@
 # MakeMine Project Documentation
 
-## 1. Tổng quan dự án
+## 1. Tổng quan
+
+MakeMine là cửa hàng quà tặng cá nhân hóa, tập trung vào móc khóa, gương, lược
+và kẹp tóc có thể khắc tên, màu sắc, font chữ và lời chúc. Ứng dụng cung cấp
+catalog sản phẩm, giỏ hàng, đặt hàng COD, theo dõi đơn, trang quản trị và trợ lý
+AI gợi ý quà tặng.
+
+Stack triển khai hiện tại:
 
-MakeMine là một ứng dụng thương mại điện tử theo hướng quà tặng cá nhân hóa, tập trung vào các sản phẩm như móc khóa, gương, lược và kẹp tóc có thể khắc tên, màu sắc, font chữ và lời chúc tùy chỉnh. Sản phẩm hướng tới người dùng trẻ, với trải nghiệm mua sắm nhẹ, hiện đại và có tính tương tác cao nhờ các tính năng AI gợi ý quà tặng.
+- Frontend: React 18, Vite, React Router, Tailwind CSS.
+- Database và authentication: Supabase.
+- Server API: Vercel Functions trong thư mục [api](api).
+- AI: Google Gemini `gemini-2.5-flash`, chỉ được gọi từ server.
+- Hosting/deploy: Vercel kết nối với branch `main` trên GitHub.
 
-Tên thương hiệu được thể hiện trong giao diện: "Make It Yours" / "Co-Creation Lab". Dự án dựa trên Base44 platform, tích hợp frontend React + backend entities/functions và SDK của Base44 để quản lý dữ liệu, xác thực người dùng và gọi AI.
+## 2. Cấu trúc repository
 
-### Mục tiêu chính
+### Root
 
-- Hiển thị danh mục sản phẩm quà tặng cá nhân hóa.
-- Cho phép người dùng xem chi tiết sản phẩm, tùy chỉnh khắc tên và lời chúc.
-- Tạo giỏ hàng và đặt hàng theo kiểu COD.
-- Theo dõi đơn hàng và cập nhật trạng thái trong admin.
-- Cung cấp trợ lý AI để gợi ý quà tặng dựa trên dịp, người nhận và ngân sách.
-- Quản lý sản phẩm và đơn hàng trong dashboard admin.
+- [README.md](README.md): setup, biến môi trường và lệnh kiểm tra.
+- [package.json](package.json): scripts và dependencies.
+- [index.html](index.html): HTML entry, title và favicon tab.
+- [public](public): các asset tĩnh, gồm ảnh mẫu và icon thương hiệu.
+- [vite.config.js](vite.config.js): cấu hình Vite.
+- [eslint.config.js](eslint.config.js): cấu hình ESLint.
 
----
+### Frontend
 
-## 2. Công nghệ sử dụng
+- [src/App.jsx](src/App.jsx): router và provider.
+- [src/main.jsx](src/main.jsx): bootstrap ứng dụng.
+- [src/index.css](src/index.css): theme, animation và utility styles.
+- [src/api/base44Client.js](src/api/base44Client.js): lớp tương thích tên cũ,
+  nhưng runtime bên trong gọi Supabase REST và các API nội bộ.
+- [src/lib/AuthContext.jsx](src/lib/AuthContext.jsx): trạng thái đăng nhập.
+- [src/lib/cart.jsx](src/lib/cart.jsx): giỏ hàng lưu trong localStorage.
+- [src/lib/productImages.js](src/lib/productImages.js): dữ liệu ảnh, category
+  và hàm định dạng giá.
+- [src/pages](src/pages): Home, Catalog, ProductDetail, Cart, OrderTracking,
+  Admin và các màn hình authentication.
+- [src/components](src/components): layout, card sản phẩm, AI assistant và
+  các component dùng chung.
 
-Dự án này là một ứng dụng frontend React chạy trên Vite, tích hợp với Base44 SDK và Base44 backend.
+### Backend API
 
-### Stack chính
+- [api/_supabase.js](api/_supabase.js): helper gọi Supabase service role và
+  kiểm tra bearer token.
+- [api/me.js](api/me.js): trả về user hiện tại.
+- [api/orders.js](api/orders.js): tạo đơn hàng.
+- [api/orders-lookup.js](api/orders-lookup.js): tra cứu đơn hàng.
+- [api/admin/products.js](api/admin/products.js): tạo và liệt kê sản phẩm admin.
+- [api/admin/products/[id].js](api/admin/products/[id].js): xóa sản phẩm.
+- [api/admin/orders.js](api/admin/orders.js): liệt kê đơn hàng admin.
+- [api/admin/orders/[id].js](api/admin/orders/[id].js): cập nhật trạng thái đơn.
+- [api/gift-suggestion.js](api/gift-suggestion.js): AI gợi ý sản phẩm.
+- [api/generate-greeting.js](api/generate-greeting.js): AI tạo lời chúc.
 
-- React 18
-- Vite
-- JavaScript (JSX)
-- Tailwind CSS
-- React Router DOM
-- TanStack React Query
-- Radix UI
-- Framer Motion
-- Lucide React
-- Base44 SDK
-- Base44 functions / entities / auth
+### Database
 
-### Công cụ hỗ trợ
+- [supabase/migrations/001_init.sql](supabase/migrations/001_init.sql): schema,
+  trigger profile, RLS và grants ban đầu.
+- [supabase/migrations/002_security_hardening.sql](supabase/migrations/002_security_hardening.sql):
+  giới hạn quyền đọc dữ liệu khách hàng và validation đơn hàng.
+- [supabase/seed.sql](supabase/seed.sql): một sản phẩm mẫu với ảnh
+  `/sample-product.png`.
 
-- ESLint
-- TypeScript cho config và typing hỗ trợ
-- PostCSS + Autoprefixer
-- Shadcn/ui-style component system trong thư mục ui
+Các migration và seed này được viết để có thể chạy lại an toàn trong Supabase
+Preview. `001_init.sql` dùng `if not exists`, tạo lại trigger/policy cần thiết
+mà không xóa bảng hoặc dữ liệu. `seed.sql` dùng `slug` làm conflict key nên sẽ
+cập nhật sản phẩm mẫu thay vì tạo bản ghi trùng.
 
-### Tham chiếu kỹ thuật chính
+## 3. Mô hình dữ liệu Supabase
 
-- [package.json](package.json)
-- [vite.config.js](vite.config.js)
-- [tailwind.config.js](tailwind.config.js)
-- [src/App.jsx](src/App.jsx)
-- [src/api/base44Client.js](src/api/base44Client.js)
+### `public.profiles`
 
----
+- `id`: liên kết tới `auth.users.id`.
+- `role`: `user` hoặc `admin`.
+- `created_at`: thời điểm tạo profile.
 
-## 3. Kiến trúc tổng thể
+Profile được tạo tự động bởi trigger `handle_new_user`.
 
-Dự án có 2 tầng chính:
+### `public.products`
 
-1. Frontend React
-   - Render UI, routing, state, tương tác người dùng
-   - Gọi Base44 SDK để lấy dữ liệu, tạo đơn hàng, xác thực, gọi function AI
+- `name`, `slug`, `category`.
+- `base_price`, `short_description`, `image_url`.
+- `customizable`, `colors`, `fonts`.
+- `featured`, `stock`, `created_at`.
 
-2. Backend Base44
-   - Entities: Product, Order, ChatSuggestion, User
-   - Functions: generateGreeting, giftSuggestion
-   - Auth và app public settings
-   - AI integration via Core.InvokeLLM
+Sản phẩm được đọc công khai. Chỉ admin được tạo, sửa hoặc xóa.
 
-### Cấu trúc tổng thể
+### `public.orders`
 
-- Root config / Base44 data model: [$root/config.json]($root/config.json), [$root/entities]($root/entities), [$root/functions]($root/functions)
-- Frontend source: [src](src)
-- UI component library: [src/components/ui](src/components/ui)
-- Pages: [src/pages](src/pages)
-- Shared logic: [src/lib](src/lib)
+- Thông tin khách: `customer_name`, `customer_phone`, `customer_email`,
+  `address`.
+- Giỏ hàng: `items` dạng JSON array.
+- `total`, `status`, `preview_confirmed`, `user_id`, `created_at`.
+- `status`: `pending`, `paid`, `shipped`, `delivered` hoặc `cancelled`.
 
----
+Khách có thể tạo đơn. Dữ liệu đơn chỉ được đọc hoặc cập nhật qua server/admin
+được xác thực.
 
-## 4. Cấu trúc thư mục chính
+### `public.chat_suggestions`
 
-### 4.1 Root
+Lưu input và kết quả trợ lý AI để phục vụ lịch sử/analytics server-side:
 
-- [README.md](README.md): hướng dẫn setup/local dev
-- [package.json](package.json): scripts và dependencies
-- [index.html](index.html): entry HTML
-- [components.json](components.json): cấu hình component system
-- [eslint.config.js](eslint.config.js): lint rules
-- [jsconfig.json](jsconfig.json): alias config
-- [$root/config.json]($root/config.json): Base44 project config
+- `user_query`, `occasion`, `recipient`, `budget`.
+- `suggested_product_ids`, `suggestions`, `created_at`.
 
-### 4.2 src/
+Client không được đọc trực tiếp bảng này.
 
-- [src/App.jsx](src/App.jsx): định nghĩa router và provider
-- [src/main.jsx](src/main.jsx): bootstrap app
-- [src/index.css](src/index.css): global styles, theme, utility classes
+## 4. Luồng runtime
 
-#### API và auth
+### 4.1 Đọc sản phẩm
 
-- [src/api/base44Client.js](src/api/base44Client.js): client Base44 SDK
-- [src/lib/AuthContext.jsx](src/lib/AuthContext.jsx): quản lý auth và public settings
-- [src/lib/cart.jsx](src/lib/cart.jsx): cart store lưu localStorage
-- [src/lib/app-params.js](src/lib/app-params.js): appId/token configuration
+Frontend gọi `Product.list()` trong [src/api/base44Client.js](src/api/base44Client.js).
+Khi đủ biến môi trường, request đi tới Supabase REST:
 
-#### Pages
-
-- [src/pages/Home.jsx](src/pages/Home.jsx): trang chủ, featured products, hero
-- [src/pages/Catalog.jsx](src/pages/Catalog.jsx): danh sách sản phẩm, lọc theo category
-- [src/pages/ProductDetail.jsx](src/pages/ProductDetail.jsx): chi tiết, tùy chỉnh khắc tên
-- [src/pages/Cart.jsx](src/pages/Cart.jsx): giỏ hàng và đặt hàng
-- [src/pages/OrderTracking.jsx](src/pages/OrderTracking.jsx): theo dõi đơn hàng
-- [src/pages/Admin.jsx](src/pages/Admin.jsx): quản trị sản phẩm và đơn hàng
-
-#### Components
-
-- [src/components/Layout.jsx](src/components/Layout.jsx): header/footer/navigation + floating gift assistant
-- [src/components/GiftAssistant.jsx](src/components/GiftAssistant.jsx): AI assistant panel
-- [src/components/GreetingGenerator.jsx](src/components/GreetingGenerator.jsx): tạo lời chúc
-- [src/components/ProductCard.jsx](src/components/ProductCard.jsx): card sản phẩm
-- [src/components/ProtectedRoute.jsx](src/components/ProtectedRoute.jsx): route guard (nếu có dùng)
-
-#### UI library
-
-- [src/components/ui](src/components/ui): các component tái sử dụng như button, dialog, card, input, select, tabs...
-
----
-
-## 5. Luồng vận hành chính
-
-### 5.1 Luồng xem sản phẩm
-
-- Người dùng truy cập trang chủ.
-- [src/pages/Home.jsx](src/pages/Home.jsx) gọi `base44.entities.Product.list(...)` để lấy danh sách sản phẩm.
-- Trang chủ hiển thị banner và sản phẩm nổi bật.
-- Người dùng click vào danh mục hoặc vào sản phẩm để đi đến trang chi tiết.
-
-### 5.2 Luồng đặt hàng
-
-- Người dùng chọn sản phẩm ở [src/pages/ProductDetail.jsx](src/pages/ProductDetail.jsx).
-- Nếu `customizable` là true, người dùng có thể nhập tên, chọn màu, font và lời chúc.
-- Khi bấm "Thêm vào giỏ", dữ liệu được lưu trong [src/lib/cart.jsx](src/lib/cart.jsx).
-- Trên giỏ hàng [src/pages/Cart.jsx](src/pages/Cart.jsx), hệ thống hiển thị chi tiết sản phẩm và form thông tin người nhận.
-- Khi submit, hệ thống tạo một `Order` trong Base44 entity:
-  - `customer_name`
-  - `customer_phone`
-  - `customer_email`
-  - `address`
-  - `items`
-  - `total`
-  - `status`
-  - `preview_confirmed`
-
-### 5.3 Luồng admin
-
-- Truy cập route `/admin` trong [src/pages/Admin.jsx](src/pages/Admin.jsx).
-- Admin có 2 tab:
-  - Sản phẩm: thêm, xoá sản phẩm
-  - Đơn hàng: xem danh sách, cập nhật trạng thái (`pending`, `paid`, `shipped`, `delivered`, `cancelled`)
-- Dữ liệu được lấy từ `Product` và `Order` entities.
-
-### 5.4 Luồng AI gợi ý quà tặng
-
-- Người dùng mở floating assistant trong [src/components/GiftAssistant.jsx](src/components/GiftAssistant.jsx).
-- Form nhận 3 input: dịp tặng, người nhận, ngân sách.
-- Gọi Base44 function `giftSuggestion` ở [$root/functions/giftSuggestion/entry.ts]($root/functions/giftSuggestion/entry.ts).
-- Function:
-  - lấy danh sách sản phẩm từ entity `Product`
-  - tạo prompt cho LLM
-  - yêu cầu trả JSON gồm `suggestions` và `ly_do`
-  - lọc theo product_id hợp lệ
-  - lưu `ChatSuggestion` để log câu hỏi và gợi ý
-
-### 5.5 Luồng tạo lời chúc
-
-- Trên chi tiết sản phẩm, `GreetingGenerator` cho phép tạo lời chúc theo người nhận, mối quan hệ, dịp, sở thích và keywords.
-- Gọi Base44 function `generateGreeting` ở [$root/functions/generateGreeting/entry.ts]($root/functions/generateGreeting/entry.ts).
-- Function kiểm tra auth user bằng `base44.auth.me()`, yêu cầu thông tin tối thiểu, gọi LLM và trả về 3 lời chúc phù hợp để in lên sản phẩm.
-
----
-
-## 6. Entity và dữ liệu Base44
-
-### 6.1 Entity Product
-
-File: [$root/entities/Product.json]($root/entities/Product.json)
-
-Các trường chính:
-
-- `name`: tên sản phẩm
-- `slug`: slug URL
-- `category`: enum gồm `móc khoá`, `gương`, `lược`, `kẹp tóc`, `khác`
-- `base_price`: giá gốc
-- `short_description`: mô tả ngắn
-- `image_url`: hình ảnh sản phẩm
-- `customizable`: cho phép khắc tên hay không
-- `colors`: mảng màu
-- `fonts`: mảng font
-- `featured`: sản phẩm nổi bật
-- `stock`: số lượng tồn kho
-
-### 6.2 Entity Order
-
-File: [$root/entities/Order.json]($root/entities/Order.json)
-
-Các trường chính:
-
-- `customer_name`
-- `customer_phone`
-- `customer_email`
-- `address`
-- `items`: array của object chứa `product_id`, `name`, `quantity`, `unit_price`, `customization`
-- `total`
-- `status`: `pending`, `paid`, `shipped`, `delivered`, `cancelled`
-- `preview_confirmed`
-
-### 6.3 Entity ChatSuggestion
-
-File: [$root/entities/ChatSuggestion.json]($root/entities/ChatSuggestion.json)
-
-Dùng để lưu trữ lịch sử người dùng tương tác AI:
-
-- `user_query`
-- `occasion`
-- `recipient`
-- `budget`
-- `suggested_product_ids`
-- `suggestions`
-
-### 6.4 Entity User
-
-File: [$root/entities/User.json]($root/entities/User.json)
-
-- `role`: `admin` | `user`
-
----
-
-## 7. Base44 Functions
-
-### 7.1 giftSuggestion
-
-File: [$root/functions/giftSuggestion/entry.ts]($root/functions/giftSuggestion/entry.ts)
-
-Nhiệm vụ:
-
-- nhận `occasion`, `recipient`, `budget`
-- đọc danh sách `Product`
-- tạo prompt để LLM chọn ra 3–5 sản phẩm phù hợp
-- trả về JSON chứa `suggestions` với `product_id` và `ly_do`
-- lưu log `ChatSuggestion`
-
-### 7.2 generateGreeting
-
-File: [$root/functions/generateGreeting/entry.ts]($root/functions/generateGreeting/entry.ts)
-
-Nhiệm vụ:
-
-- xác thực người dùng qua `base44.auth.me()`
-- nhận dữ liệu lời chúc: recipient, relationship, occasion, hobbies, keywords, productName
-- tạo 3 lời chúc ngắn, tự nhiên, phù hợp để in lên đồ quà
-- trả về JSON `greetings`
-
----
-
-## 8. Authentication và session flow
-
-Auth được quản lý trong [src/lib/AuthContext.jsx](src/lib/AuthContext.jsx).
-
-Cách hoạt động:
-
-- Gọi `base44.app.getPublicSettings()` để kiểm tra cấu hình app công khai.
-- Nếu có token, gọi `base44.auth.me()` để xác định trạng thái đăng nhập.
-- Nếu chưa đăng nhập hoặc lỗi auth, redirect tới login bằng `base44.auth.redirectToLogin(...)`.
-- Nếu user không đăng ký, hiển thị [src/components/UserNotRegisteredError.jsx](src/components/UserNotRegisteredError.jsx).
-
-Điểm quan trọng: trong Base44 app, `appParams` chứa `appId`, `token`, `functionsVersion`, `appBaseUrl` được đọc trong [src/lib/app-params.js](src/lib/app-params.js).
-
----
-
-## 9. UI/UX và giao diện chính
-
-### 9.1 Layout
-
-[src/components/Layout.jsx](src/components/Layout.jsx) chứa:
-
-- sticky header
-- navigation
-- giỏ hàng với badge số lượng
-- floating button "Gợi ý quà tặng"
-- footer
-- render `GiftAssistant`
-
-### 9.2 Style system
-
-- Tailwind CSS với theme màu pastel và phong cách brand youthful.
-- Các component được thiết kế theo style hiện đại, nhiều corner radius, tông màu hồng/lilac/green pastel.
-- Dùng utility class `glass`, `engraved`, `pulse-ring`, `shimmer` trong [src/index.css](src/index.css).
-
-### 9.3 Trải nghiệm mua sắm
-
-- Trang chủ có hero, CTA, AI prompt, sản phẩm nổi bật.
-- Trang catalog có filter danh mục và sắp xếp giá.
-- Trang product detail có live preview khắc tên.
-- Trang cart hỗ trợ xác nhận mẫu khắc trước khi đặt hàng.
-- Admin có khả năng quản lý nhanh các sản phẩm và đơn hàng.
-
----
-
-## 10. Cách chạy dự án ở local
-
-Theo [README.md](README.md), quy trình local dev là:
-
-```bash
-base44 login
-base44 link
-base44 dev
+```text
+/rest/v1/products?select=*&order=created_at.desc&limit=60
 ```
 
-### Lưu ý quan trọng
+Khi chạy local chưa có biến Supabase, client dùng một sản phẩm mẫu local để
+giao diện vẫn có thể xem và phát triển:
 
-- Mỗi clone mới cần `base44 link`.
-- Không nên chạy `npm run dev` một mình khi làm việc với Base44 backend vì sẽ thiếu proxy / API và dẫn đến gọi sai backend.
-- `base44 dev` tự chạy Vite thông qua `site.serveCommand` trong [$root/config.json]($root/config.json).
-- Nếu chưa publish app, UI có thể không load đúng cách khi dev local.
-
-### Frontend-only mode
-
-```bash
-base44 dev --remote
+```text
+/sample-product.png
 ```
 
-Mode này kết nối với backend hosted production, dùng cho frontend mà không cần local backend toàn bộ.
+Fallback này chỉ dành cho local thiếu cấu hình; môi trường production phải
+được cấu hình Supabase đầy đủ.
 
----
+### 4.2 Authentication
 
-## 11. Cấu hình Base44 và publish
+Authentication dùng Supabase Auth REST API:
 
-File cấu hình chính:
+- Login bằng email/password.
+- Đăng ký tài khoản.
+- Xác minh OTP.
+- Gửi email reset password.
+- Cập nhật password.
+- OAuth provider qua Supabase authorize endpoint.
 
-- [$root/config.json]($root/config.json)
+Session được lưu trong localStorage với key `makemine_supabase_session`.
+Các API server nhận bearer token và xác thực lại token với Supabase trước khi
+cho phép thao tác cần đăng nhập.
 
-Cấu hình gốc cho app Base44 bao gồm:
+### 4.3 Đặt hàng
 
-- `installCommand`: `npm install`
-- `buildCommand`: `npm run build`
-- `serveCommand`: `npm run dev`
-- `outputDirectory`: `./dist`
+1. Người dùng chọn sản phẩm và tùy chỉnh tên/màu/font/lời chúc.
+2. Item được lưu trong cart localStorage.
+3. Người dùng nhập thông tin giao hàng và xác nhận preview.
+4. Frontend gọi `POST /api/orders`.
+5. Server validate dữ liệu và ghi vào `public.orders`.
+6. UI hiển thị mã đơn hàng sau khi tạo thành công.
 
-Sau khi push code lên repo, app cần được publish qua dashboard Base44 thay vì deploy CLI trực tiếp, như hướng dẫn trong [README.md](README.md).
+### 4.4 Theo dõi đơn
 
----
+Trang `/don-hang` gọi endpoint tra cứu với mã đơn và số điện thoại.
+Server chỉ trả dữ liệu phù hợp với thông tin tra cứu, không mở quyền đọc toàn
+bộ bảng orders cho client.
 
-## 12. Quy trình nghiệp vụ đầy đủ
+### 4.5 Quản trị
 
-### 12.1 Từ khi mở app
+Trang `/admin` yêu cầu user có `profiles.role = 'admin'`.
 
-1. App khởi tạo `AuthProvider` và `QueryClientProvider` trong [src/App.jsx](src/App.jsx).
-2. Kiểm tra app public settings và auth status.
-3. Nếu chưa đăng nhập, chuyển hướng Login.
-4. Hiển thị layout và router.
+Admin có thể:
 
-### 12.2 Người dùng chọn quà
+- Xem và cập nhật trạng thái đơn hàng.
+- Tạo sản phẩm.
+- Xóa sản phẩm.
+- Xem số liệu sản phẩm/đơn hàng trong giao diện quản trị.
 
-1. Vào Home hoặc Catalog.
-2. Lọc theo category hoặc xem featured products.
-3. Bấm vào sản phẩm.
-4. Chọn tùy chỉnh như tên, màu, font, lời chúc.
-5. Thêm vào giỏ hàng.
+Việc kiểm tra role được thực hiện lại ở server, không chỉ dựa vào route guard
+frontend.
 
-### 12.3 Xác nhận mua hàng
+### 4.6 AI gợi ý quà tặng
 
-1. Chuyển tới `/gio-hang`.
-2. Xem lại item và customization.
-3. Nhập thông tin nhận hàng.
-4. Xác nhận preview khắc.
-5. Tạo `Order` trong Base44.
-6. Chuyển sang trạng thái thành công, hiển thị mã đơn hàng.
+`POST /api/gift-suggestion`:
 
-### 12.4 Theo dõi và quản lý đơn
+1. Nhận dịp tặng, người nhận và ngân sách.
+2. Đọc danh sách sản phẩm từ Supabase bằng service role.
+3. Gọi Gemini `gemini-2.5-flash`.
+4. Lọc các `product_id` không tồn tại.
+5. Trả về tối đa 5 gợi ý và lý do.
+6. Lưu log vào `chat_suggestions`.
 
-- Route `/don-hang` dùng để xem trạng thái đơn.
-- Admin ở `/admin` cập nhật tiến độ.
+Gemini API key chỉ nằm ở server environment, không được đưa vào bundle browser.
 
----
+### 4.7 AI tạo lời chúc
 
-## 13. Điểm mạnh của project
+`POST /api/generate-greeting` nhận recipient, relationship, occasion, hobbies,
+keywords và productName. Server gọi Gemini, parse JSON, làm sạch kết quả và
+trả về tối đa 3 lời chúc tiếng Việt ngắn, không emoji.
 
-- Tích hợp Base44 mạnh, giảm thời gian setup backend và auth.
-- Thương mại điện tử rõ ràng, phù hợp với mô hình quà tặng cá nhân hóa.
-- AI assistant mang tính cạnh tranh và tạo trải nghiệm khác biệt.
-- Có admin quản trị trực tiếp trên frontend.
-- Cấu trúc component và page rõ ràng, dễ mở rộng thêm tính năng mới.
+## 5. UI/UX
 
----
+- Header sticky có navigation, logo MakeMine và giỏ hàng.
+- Logo badge dùng asset local [public/favicon.png](public/favicon.png).
+- Favicon tab dùng asset tròn [public/tab-icon.png](public/tab-icon.png).
+- Home có hero, category links, sản phẩm nổi bật và CTA mở AI assistant.
+- Catalog hỗ trợ lọc category và sắp xếp theo giá.
+- Product detail hỗ trợ preview tùy chỉnh và tạo lời chúc.
+- Cart hiển thị item, số lượng, giá và form đặt hàng.
+- Admin có giao diện quản lý sản phẩm/đơn.
+- Ảnh dùng component độc lập trong [src/components/ui/image.jsx](src/components/ui/image.jsx);
+  ảnh rỗng hoặc lỗi hiển thị fallback nội bộ, không gọi dịch vụ resize bên ngoài.
 
-## 14. Các điểm cần lưu ý khi phát triển tiếp
+## 6. Setup local
 
-- Nên tách dữ liệu cart và order logic thành các custom hooks rõ ràng hơn nếu dự án mở rộng.
-- Có thể thêm validation mạnh hơn cho form đặt hàng và form admin.
-- Có thể thêm hệ thống thanh toán online thay cho COD trong tương lai.
-- Có thể mở rộng `Product` với `inventory`, `description`, `attributes`, `tags` để quản lý tốt hơn.
-- Có thể thêm tính năng lưu lịch sử đặt hàng và phân quyền admin theo role.
-- Cần kiểm tra localStorage cart khi app load trên môi trường SSR hoặc browser mới.
+### Cài dependencies
 
----
+```bash
+npm install
+```
 
-## 15. Tóm tắt ngắn
+### Biến môi trường
 
-MakeMine là một app thương mại điện tử quà tặng cá nhân hóa, chạy trên React + Vite + Base44, với các tính năng chính: danh mục sản phẩm, tùy biến khắc tên, AI gợi ý quà, giỏ hàng, đặt hàng, quản trị sản phẩm và đơn hàng. Dự án kết hợp frontend hiện đại với backend entity/function native của Base44 và AI integration, tạo nên trải nghiệm bán hàng và tư vấn quà tặng theo hướng người dùng trẻ, cá nhân hóa cao.
+Tạo `.env.local` ở root:
 
----
+```text
+VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+VITE_SUPABASE_ANON_KEY=YOUR_PUBLISHABLE_OR_ANON_KEY
+```
 
-## 16. Tài liệu tham khảo trong repo
+Không commit `.env.local`.
 
-- [README.md](README.md)
-- [package.json](package.json)
-- [src/App.jsx](src/App.jsx)
-- [src/lib/AuthContext.jsx](src/lib/AuthContext.jsx)
-- [src/components/GiftAssistant.jsx](src/components/GiftAssistant.jsx)
-- [src/pages/Admin.jsx](src/pages/Admin.jsx)
-- [src/pages/Cart.jsx](src/pages/Cart.jsx)
-- [src/pages/ProductDetail.jsx](src/pages/ProductDetail.jsx)
-- [$root/entities/Product.json]($root/entities/Product.json)
-- [$root/entities/Order.json]($root/entities/Order.json)
-- [$root/functions/giftSuggestion/entry.ts]($root/functions/giftSuggestion/entry.ts)
-- [$root/functions/generateGreeting/entry.ts]($root/functions/generateGreeting/entry.ts)
+### Chuẩn bị database
+
+Trong Supabase SQL Editor, với database mới chạy theo thứ tự:
+
+1. [001_init.sql](supabase/migrations/001_init.sql)
+2. [002_security_hardening.sql](supabase/migrations/002_security_hardening.sql)
+3. [seed.sql](supabase/seed.sql)
+
+Các file có thể được chạy lại khi cần; không xóa bảng để xử lý lỗi
+`relation "profiles" already exists`. Nếu Preview vẫn hiển thị kết quả cũ,
+hãy chạy lại check sau khi commit các thay đổi migration idempotent này.
+
+### Chạy frontend
+
+```bash
+npm run dev
+```
+
+Hoặc để truy cập từ máy khác trong mạng local:
+
+```bash
+npm run dev -- --host 0.0.0.0
+```
+
+### Kiểm tra
+
+```bash
+npm run build
+npm run lint
+```
+
+## 7. Cấu hình Vercel
+
+Trong Vercel Project Settings, khai báo các biến sau cho Production:
+
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+SUPABASE_URL
+SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+GEMINI_API_KEY
+```
+
+Sau khi thay đổi environment variables, cần redeploy để build frontend và
+server functions nhận giá trị mới.
+
+Không dùng tiền tố `VITE_` cho service role key hoặc Gemini key. Các key đó
+chỉ được dùng trong [api](api).
+
+## 8. Cấu hình Supabase Auth
+
+Trong Supabase Authentication, cấu hình Site URL và Redirect URLs cho:
+
+```text
+http://localhost:5173
+http://127.0.0.1:5173
+https://YOUR_VERCEL_DOMAIN.vercel.app
+```
+
+Nếu bật Google OAuth, cấu hình provider trong Supabase và thêm callback URL
+theo URL Supabase yêu cầu.
+
+## 9. Tạo admin
+
+1. Đăng ký tài khoản từ giao diện.
+2. Chạy SQL sau trong Supabase SQL Editor:
+
+```sql
+update public.profiles
+set role = 'admin'
+where id = (
+  select id
+  from auth.users
+  where email = 'EMAIL_CUA_BAN'
+);
+```
+
+3. Đăng xuất và đăng nhập lại để client nhận session mới.
+
+## 10. Deploy và kiểm thử sau deploy
+
+Push code lên branch `main`. Nếu Vercel đã kết nối GitHub repository, deploy sẽ
+được kích hoạt tự động. Nếu không, chọn **Redeploy** trong Vercel.
+
+Checklist:
+
+- Trang chủ và catalog hiển thị sản phẩm.
+- Ảnh sản phẩm tải được.
+- Đăng ký, OTP, login và logout.
+- Reset password.
+- Thêm vào giỏ và tạo đơn.
+- Tra cứu đơn.
+- Tài khoản admin truy cập `/admin`.
+- Admin tạo/xóa sản phẩm và cập nhật trạng thái đơn.
+- AI gift suggestion.
+- AI greeting generation.
+
+## 11. Dữ liệu test local
+
+- [gift.json](gift.json): payload test cho `/api/gift-suggestion`.
+- [order.json](order.json): payload test cho `/api/orders`.
+
+Đây là file test thủ công, không cần cho runtime production và không bắt buộc
+push lên repository.
+
+## 12. Hướng phát triển
+
+- Thêm thanh toán online thay cho COD.
+- Thêm upload ảnh qua Supabase Storage.
+- Thêm image transformation nếu cần tối ưu ảnh dung lượng lớn.
+- Tách API client khỏi tên tương thích cũ để code dễ hiểu hơn.
+- Bổ sung test tự động cho API validation và các flow authentication.
+- Thêm audit log cho thao tác admin.
