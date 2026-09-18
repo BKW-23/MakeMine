@@ -14,6 +14,19 @@ const sampleProducts = [{
   fonts: ["Quicksand"],
   featured: true,
   stock: 45,
+}, {
+  id: "sample-kep-toc-ca-nhan-hoa",
+  name: "Kẹp tóc cá nhân hóa",
+  slug: "kep-toc-ca-nhan-hoa",
+  category: "kẹp tóc",
+  base_price: 69000,
+  short_description: "Kẹp tóc cá nhân hóa, khắc tên theo yêu cầu",
+  image_url: "/sample-product.png",
+  customizable: true,
+  colors: ["hồng"],
+  fonts: ["Quicksand"],
+  featured: false,
+  stock: 45,
 }];
 
 const getSession = () => {
