@@ -1,6 +1,20 @@
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const sessionKey = "makemine_supabase_session";
+const sampleProducts = [{
+  id: "sample-luoc-bo-tui-mini",
+  name: "Lược bỏ túi mini",
+  slug: "luoc-bo-tui-mini",
+  category: "lược",
+  base_price: 69000,
+  short_description: "Lược nhỏ tiện mang theo, khắc tên",
+  image_url: "/sample-product.png",
+  customizable: true,
+  colors: ["hồng"],
+  fonts: ["Quicksand"],
+  featured: true,
+  stock: 45,
+}];
 
 const getSession = () => {
   try {
@@ -24,6 +38,12 @@ const authHeaders = () => {
   };
 };
 
+const assertSupabaseConfig = () => {
+  if (!supabaseUrl || !anonKey) {
+    throw new Error("Supabase environment variables are not configured.");
+  }
+};
+
 const request = async (url, options = {}) => {
   const response = await fetch(url, options);
   const data = await response.json().catch(() => ({}));
@@ -37,11 +57,13 @@ const request = async (url, options = {}) => {
   return data;
 };
 
-const supabaseRequest = (path, options = {}) =>
-  request(`${supabaseUrl}${path}`, {
+const supabaseRequest = (path, options = {}) => {
+  assertSupabaseConfig();
+  return request(`${supabaseUrl}${path}`, {
     ...options,
     headers: { ...authHeaders(), ...(options.headers || {}) },
   });
+};
 
 const apiRequest = (path, options = {}) => {
   const session = getSession();
@@ -57,7 +79,10 @@ const apiRequest = (path, options = {}) => {
 
 const products = {
   async list(..._args) {
-    return supabaseRequest("/rest/v1/products?select=*&order=created_at.desc&limit=60");
+    if (!supabaseUrl || !anonKey) return sampleProducts;
+    const data = await supabaseRequest("/rest/v1/products?select=*&order=created_at.desc&limit=60");
+    if (!Array.isArray(data)) throw new Error("Supabase returned an invalid product list.");
+    return data;
   },
   create(payload) {
     return apiRequest("/api/admin/products", { method: "POST", body: JSON.stringify(payload) });

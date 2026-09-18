@@ -22,8 +22,10 @@ export default function Layout() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="flex items-center gap-2 group">
-              <span className="relative grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-primary text-primary-foreground engraved">
-                <img src="/favicon.png" alt="" className="h-full w-full object-cover" />
+              <span className="relative grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground engraved">
+                <span aria-hidden="true" className="absolute -top-1 left-1 h-3 w-3 rounded-full bg-primary" />
+                <span aria-hidden="true" className="absolute -top-1 right-1 h-3 w-3 rounded-full bg-primary" />
+                <img src="/favicon.png" alt="" className="relative z-10 h-full w-full rounded-full object-cover" />
               </span>
               <span className="font-display text-lg font-bold tracking-tight">
                 Make<span className="text-primary">Mine</span>
