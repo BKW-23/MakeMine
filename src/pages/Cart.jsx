@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Minus, Plus, Trash2, ShoppingBag, Loader2, Check } from "lucide-react";
-import { api } from "@/api/client";
+import { base44 } from "@/api/base44Client";
 import { useCart } from "@/lib/cart";
 import { formatVND } from "@/lib/productImages";
 
@@ -34,7 +34,7 @@ export default function Cart() {
         unit_price: i.unit_price,
         customization: i.customization,
       }));
-      const res = await api.entities.Order.create({
+      const res = await base44.entities.Order.create({
         customer_name: form.name,
         customer_phone: form.phone,
         customer_email: form.email,

@@ -1,4 +1,4 @@
--- Security hardening for the migrated product, order, and profile tables.
+-- Security hardening for the migration generated from the Base44 entity specs.
 -- Customer data is never readable by anon/authenticated clients; server endpoints
 -- use the service role only after applying their own validation/auth checks.
 
