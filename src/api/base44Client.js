@@ -175,7 +175,19 @@ const apiRequest = (path, options = {}) => {
 const products = {
   async list(..._args) {
     if (!supabaseUrl || !anonKey) return sampleProducts;
-    const data = await supabaseRequest("/rest/v1/products?select=*&order=created_at.desc&limit=60");
+    let data;
+    try {
+      data = await supabaseRequest("/rest/v1/products?select=*&order=created_at.desc&limit=60", {
+        headers: { Authorization: `Bearer ${anonKey}` },
+      });
+    } catch (error) {
+      if (error.status === 401) {
+        saveSession(null);
+        console.warn("Supabase session expired; showing the local sample catalog.");
+        return sampleProducts;
+      }
+      throw error;
+    }
     if (!Array.isArray(data)) throw new Error("Supabase returned an invalid product list.");
     if (data.length === 0) {
       console.warn("Supabase returned no products; showing the local sample catalog.");
