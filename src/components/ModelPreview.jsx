@@ -42,8 +42,10 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.enablePan = false;
+    controls.enablePan = true;
+    controls.screenSpacePanning = true;
     controls.target.set(0, 0, 0);
+    renderer.domElement.style.touchAction = "none";
 
     let model;
     let modelSize = new THREE.Vector3(1, 1, 1);
@@ -53,6 +55,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     const modelMeshes = [];
+    const activePointers = new Set();
     let draggingLayer = null;
 
     // --- HÀM CANH TÂM VÀ FIT CAMERA DÙNG CHUNG CHO PC VÀ MOBILE ---
@@ -296,6 +299,14 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
 
     const onPointerDown = (event) => {
       event.stopPropagation();
+      if (event.pointerType === "touch") {
+        activePointers.add(event.pointerId);
+        if (activePointers.size > 1) {
+          draggingLayer = null;
+          controls.enabled = true;
+          return;
+        }
+      }
       updatePointer(event);
       const decals = raycaster
         .intersectObjects(stickerGroup.children, false)
@@ -334,9 +345,16 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       controls.enabled = true;
     };
 
+    const onPointerEnd = (event) => {
+      if (event.pointerType === "touch") activePointers.delete(event.pointerId);
+      onPointerUp();
+    };
+
     renderer.domElement.addEventListener("pointerdown", onPointerDown);
     renderer.domElement.addEventListener("pointermove", onPointerMove);
-    renderer.domElement.addEventListener("pointerup", onPointerUp);
+    renderer.domElement.addEventListener("pointerup", onPointerEnd);
+    renderer.domElement.addEventListener("pointercancel", onPointerEnd);
+    renderer.domElement.addEventListener("lostpointercapture", onPointerEnd);
     animate();
 
     return () => {
@@ -346,7 +364,9 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       controls.dispose();
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
       renderer.domElement.removeEventListener("pointermove", onPointerMove);
-      renderer.domElement.removeEventListener("pointerup", onPointerUp);
+      renderer.domElement.removeEventListener("pointerup", onPointerEnd);
+      renderer.domElement.removeEventListener("pointercancel", onPointerEnd);
+      renderer.domElement.removeEventListener("lostpointercapture", onPointerEnd);
       onResetView?.(null);
       if (model) {
         model.traverse((object) => {
