@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -6,6 +6,7 @@ import { DecalGeometry } from "three/examples/jsm/geometries/DecalGeometry.js";
 
 export default function ModelPreview({ src, alt, layers = [], selectedId, onSelectLayer, onMoveLayer, onResetView }) {
   const containerRef = useRef(null);
+  const [showHint, setShowHint] = useState(true);
   const layersRef = useRef(layers);
   const selectedIdRef = useRef(selectedId);
   const onSelectLayerRef = useRef(onSelectLayer);
@@ -382,5 +383,24 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     };
   }, [src]);
 
-  return <div ref={containerRef} role="img" aria-label={alt} className="absolute inset-0 h-full w-full" />;
+  return (
+    <div className="absolute inset-0 h-full w-full select-none">
+      <div
+        ref={containerRef}
+        role="img"
+        aria-label={alt}
+        className="absolute inset-0 h-full w-full"
+        onPointerDown={() => setShowHint(false)}
+      />
+      {showHint && (
+        <div className="pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/20 bg-slate-900/75 px-3 py-1.5 text-[11px] text-slate-200 shadow-md backdrop-blur-md transition-opacity sm:text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-blue-400" />
+            <span className="sm:hidden">1 ngón xoay · 2 ngón kéo/zoom</span>
+            <span className="hidden sm:inline">Giữ chuột trái để xoay · chuột phải để di chuyển</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

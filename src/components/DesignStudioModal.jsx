@@ -283,9 +283,11 @@ export default function DesignStudioModal({ product, name, message, colorHex, in
             <button
               type="button"
               onClick={() => resetModelView?.()}
-              className="absolute right-5 top-5 inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950/90 px-3 py-1.5 text-xs text-slate-300 shadow-xl hover:border-pink-400 hover:text-pink-300"
+              className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950/90 px-2.5 py-1.5 text-xs text-slate-300 shadow-xl backdrop-blur-md transition hover:border-pink-400 hover:text-pink-300 active:scale-95 sm:right-5 sm:top-5 sm:px-3"
             >
-              <RotateCcw className="h-3.5 w-3.5" /> Đưa về chính diện
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span className="sm:hidden">Căn giữa</span>
+              <span className="hidden sm:inline">Đưa về chính diện</span>
             </button>
           )}
         </main>
