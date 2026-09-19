@@ -19,6 +19,10 @@ admin operations, and Gemini calls run through controlled server endpoints.
    duplicate sample.
 5. Start the frontend with `npm run dev`.
 
+Các payload thử nghiệm chưa thuộc runtime chính nằm trong
+[pending-review](pending-review). Thư mục này có script Bash để bật local và
+tài liệu riêng cho `gift.json` và `order.json`.
+
 ## Environment variables
 
 Client-side (safe to expose):
