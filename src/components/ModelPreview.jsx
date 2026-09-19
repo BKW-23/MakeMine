@@ -161,6 +161,18 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
             mesh.userData.layerId = layer.id;
             mesh.renderOrder = 10;
             stickerGroup.add(mesh);
+            const pickMesh = new THREE.Mesh(
+              new THREE.PlaneGeometry(
+                modelSize.x * 0.16 * layer.scale * aspect,
+                modelSize.x * 0.16 * layer.scale,
+              ),
+              new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthTest: false, side: THREE.DoubleSide }),
+            );
+            pickMesh.position.copy(position);
+            pickMesh.rotation.copy(orientation);
+            pickMesh.userData.layerId = layer.id;
+            pickMesh.userData.isStickerPick = true;
+            stickerGroup.add(pickMesh);
             if (layer.id === selectedIdRef.current) {
               const outlineMaterial = new THREE.LineBasicMaterial({ color: 0x3b82f6, depthTest: false });
               const outline = new THREE.LineSegments(
@@ -200,7 +212,9 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     const onPointerDown = (event) => {
       event.stopPropagation();
       updatePointer(event);
-      const decals = raycaster.intersectObjects(stickerGroup.children, false);
+      const decals = raycaster
+        .intersectObjects(stickerGroup.children, false)
+        .filter((intersection) => intersection.object.userData.isStickerPick);
       const hitDecal = decals[0]?.object;
       if (hitDecal?.userData.layerId) {
         draggingLayer = hitDecal.userData.layerId;
