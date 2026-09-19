@@ -139,12 +139,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
           <div className="grid grid-cols-2 gap-2 overflow-y-auto pr-1">
             {availableStickers.map((item) => (
               <button key={item.id} type="button" onClick={() => addSticker(item)} className="group rounded-xl border border-slate-800 bg-slate-900 p-2 text-left hover:border-pink-500">
-                <span
-                  role="img"
-                  aria-label={item.label}
-                  className="block aspect-square w-full rounded-lg bg-slate-800 transition group-hover:scale-105"
-                  style={stickerCropStyle(item)}
-                />
+                <img src={item.image} alt={item.label} className="aspect-square w-full rounded-lg object-cover transition group-hover:scale-105" />
                 <span className="mt-1 block truncate text-[11px] text-slate-300 group-hover:text-pink-300">{item.label}</span>
               </button>
             ))}
