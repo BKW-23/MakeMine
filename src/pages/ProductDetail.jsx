@@ -239,7 +239,7 @@ export default function ProductDetail() {
       {studioOpen && (
         <DesignStudioModal
           product={product}
-          name={name.trim()}
+          name={name}
           message={message}
           colorHex={colorHex(color)}
           color={color}
