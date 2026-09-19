@@ -107,6 +107,13 @@ export default function Cart() {
                     Khắc: "{i.customization.name}" · {i.customization.color} · {i.customization.font}
                   </div>
                 )}
+                {(i.customization?.sticker !== "none" || i.customization?.engravingType) && (
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    {i.customization?.sticker && i.customization.sticker !== "none" && `Sticker: ${i.customization.sticker}`}
+                    {i.customization?.sticker !== "none" && i.customization?.engravingType && " · "}
+                    {i.customization?.engravingType && `Kiểu khắc: ${i.customization.engravingType === "raised" ? "khắc nổi" : "khắc chìm"}`}
+                  </div>
+                )}
                 {i.customization?.message && (
                   <div className="mt-1 text-xs italic text-foreground/80">Lời chúc: "{i.customization.message}"</div>
                 )}

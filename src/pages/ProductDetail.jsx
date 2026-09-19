@@ -8,6 +8,16 @@ import GreetingGenerator from "@/components/GreetingGenerator";
 
 const DEFAULT_COLORS = ["Mint", "Lilac", "Trắng", "Đen", "Hồng"];
 const DEFAULT_FONTS = ["Sans", "Script", "Mono"];
+const STICKERS = [
+  { id: "none", label: "Không sticker", emoji: "—" },
+  { id: "heart", label: "Trái tim", emoji: "♥" },
+  { id: "star", label: "Ngôi sao", emoji: "★" },
+  { id: "flower", label: "Hoa nhỏ", emoji: "✿" },
+];
+const ENGRAVING_TYPES = [
+  { id: "raised", label: "Khắc nổi" },
+  { id: "engraved", label: "Khắc chìm" },
+];
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -18,6 +28,8 @@ export default function ProductDetail() {
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
   const [font, setFont] = useState("");
+  const [sticker, setSticker] = useState("none");
+  const [engravingType, setEngravingType] = useState("raised");
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [message, setMessage] = useState("");
@@ -52,7 +64,7 @@ export default function ProductDetail() {
 
   const handleAdd = () => {
     const customization = product.customizable
-      ? { name: name.trim(), color, font, message: message || undefined }
+      ? { name: name.trim(), color, font, sticker, engravingType, message: message || undefined }
       : {};
     addItem({
       key: product.id + JSON.stringify(customization),
@@ -87,15 +99,21 @@ export default function ProductDetail() {
               <img src={imageFor(product)} alt={product.name} className="h-full w-full object-cover" />
             )}
             {/* Live engraving preview overlay */}
-            {product.customizable && (name.trim() || message) && (
+            {product.customizable && (name.trim() || message || sticker !== "none") && (
               <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
                 <div className="inline-block max-w-[90%] rounded-lg bg-background/80 backdrop-blur px-4 py-2" style={{ color: colorHex(color) }}>
+                  {sticker !== "none" && (
+                    <span className="mr-2 text-xl" aria-label="Sticker">
+                      {STICKERS.find((item) => item.id === sticker)?.emoji}
+                    </span>
+                  )}
                   {name.trim() && (
                     <span
                       className="block text-2xl"
                       style={{
                         fontFamily: font === "Script" ? "'Brush Script MT', cursive" : font === "Mono" ? "ui-monospace, monospace" : "Inter, sans-serif",
                         fontWeight: font === "Script" ? 400 : 700,
+                        textShadow: engravingType === "raised" ? "1px 1px 0 rgba(255,255,255,.55), 2px 2px 2px rgba(0,0,0,.18)" : "inset 0 1px 1px rgba(0,0,0,.35)",
                       }}
                     >
                       {name.trim()}
@@ -168,6 +186,38 @@ export default function ProductDetail() {
                       {f}
                     </button>
                   ))}
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground font-mono">STICKER</label>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {STICKERS.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setSticker(item.id)}
+                        className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${sticker === item.id ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"}`}
+                      >
+                        <span className="text-lg">{item.emoji}</span>{item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground font-mono">ENGRAVING STYLE</label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {ENGRAVING_TYPES.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setEngravingType(item.id)}
+                        className={`rounded-lg border px-4 py-2 text-sm transition-colors ${engravingType === item.id ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"}`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

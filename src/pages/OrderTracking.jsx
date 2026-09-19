@@ -131,6 +131,8 @@ export default function OrderTracking() {
                       <span>
                         {it.name} ×{it.quantity}
                         {it.customization?.name && <span className="text-muted-foreground font-mono"> · "{it.customization.name}"</span>}
+                        {it.customization?.sticker && it.customization.sticker !== "none" && <span className="text-muted-foreground"> · sticker {it.customization.sticker}</span>}
+                        {it.customization?.engravingType && <span className="text-muted-foreground"> · {it.customization.engravingType === "raised" ? "khắc nổi" : "khắc chìm"}</span>}
                       </span>
                       <span className="text-muted-foreground">{formatVND(it.unit_price * it.quantity)}</span>
                     </div>
