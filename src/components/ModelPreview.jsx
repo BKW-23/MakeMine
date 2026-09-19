@@ -20,6 +20,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     if (!container) return undefined;
 
     const scene = new THREE.Scene();
+    let defaultViewDistance = 3.2;
     const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
     camera.up.set(-1, 0, 0);
     camera.position.set(0, defaultViewDistance, 0.2);
@@ -46,7 +47,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     controls.target.set(0, 0, 0);
     const resetView = () => {
       camera.up.set(-1, 0, 0);
-      camera.position.set(0, 3.2, 0.2);
+      camera.position.set(0, defaultViewDistance, 0.2);
       controls.target.set(0, 0, 0);
       controls.update();
     };
@@ -55,7 +56,6 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     let frameId;
     let model;
     let modelSize = new THREE.Vector3(1, 1, 1);
-    let defaultViewDistance = 3.2;
     let defaultSurface = null;
     let renderedLayersKey = "";
     const stickerGroup = new THREE.Group();
