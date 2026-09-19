@@ -85,6 +85,26 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
     window.addEventListener("pointerup", stop);
   };
 
+  const handleResize = (event, layer) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startScale = layer.scale;
+    const move = (moveEvent) => {
+      const distance = Math.max(moveEvent.clientX - startX, moveEvent.clientY - startY);
+      const nextScale = Math.min(2.5, Math.max(0.45, startScale + distance / 180));
+      setScale(nextScale);
+      updateSelected({ scale: nextScale });
+    };
+    const stop = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+  };
+
   return (
     <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-slate-950 text-slate-100">
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-800 bg-slate-950 px-4">
@@ -159,6 +179,18 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
                       filter: tint !== "original" ? `sepia(1) saturate(3) hue-rotate(${tint === "blue" ? "145deg" : tint === "pink" ? "290deg" : "0deg"})` : "none",
                     }}
                   />
+                  {selectedLayer && (
+                    <>
+                      <span className="pointer-events-none absolute -inset-1 rounded border-2 border-blue-500" />
+                      <span className="pointer-events-none absolute -left-1 top-1/2 h-8 w-1.5 -translate-y-1/2 rounded-full bg-blue-500" />
+                      <span className="pointer-events-none absolute -right-1 top-1/2 h-8 w-1.5 -translate-y-1/2 rounded-full bg-blue-500" />
+                      <span
+                        role="presentation"
+                        onPointerDown={(event) => handleResize(event, layer)}
+                        className="absolute -bottom-2 -right-2 h-4 w-4 cursor-nwse-resize rounded-sm border-2 border-white bg-blue-500 shadow"
+                      />
+                    </>
+                  )}
                 </button>
               );
             })}
