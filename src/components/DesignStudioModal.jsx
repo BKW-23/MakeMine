@@ -50,11 +50,18 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
     };
     setLayers((current) => [...current, layer]);
     setSelectedId(layer.id);
+    setTint("original");
   };
 
   const updateSelected = (changes) => {
     setLayers((current) => current.map((layer) => (
       layer.id === selectedId ? { ...layer, ...changes } : layer
+    )));
+  };
+
+  const updateSurfaceLayer = (layerId, surface) => {
+    setLayers((current) => current.map((layer) => (
+      layer.id === layerId ? { ...layer, surface } : layer
     )));
   };
 
@@ -160,7 +167,14 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
           <div className="relative aspect-square w-full max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl" onPointerDown={(event) => event.stopPropagation()}>
             {isModelProduct ? (
               <div className="absolute inset-0 bg-gradient-to-br from-pink-100 via-white to-purple-100">
-                <ModelPreview src="/models/guong-cam-tay-lap-lanh.glb" alt={product.name} layers={layers} />
+                <ModelPreview
+                  src="/models/guong-cam-tay-lap-lanh.glb"
+                  alt={product.name}
+                  layers={layers}
+                  selectedId={selectedId}
+                  onSelectLayer={setSelectedId}
+                  onMoveLayer={updateSurfaceLayer}
+                />
               </div>
             ) : (
               <img src={product.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" />

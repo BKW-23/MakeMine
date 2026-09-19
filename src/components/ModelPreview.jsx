@@ -2,8 +2,9 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { DecalGeometry } from "three/examples/jsm/geometries/DecalGeometry.js";
 
-export default function ModelPreview({ src, alt, layers = [] }) {
+export default function ModelPreview({ src, alt, layers = [], selectedId, onSelectLayer, onMoveLayer }) {
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -40,6 +41,10 @@ export default function ModelPreview({ src, alt, layers = [] }) {
     let modelSize = new THREE.Vector3(1, 1, 1);
     let renderedLayersKey = "";
     const stickerGroup = new THREE.Group();
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    const modelMeshes = [];
+    let draggingLayer = null;
     const resize = () => {
       const width = container.clientWidth || 1;
       const height = container.clientHeight || 1;
@@ -59,6 +64,7 @@ export default function ModelPreview({ src, alt, layers = [] }) {
           if (object.isMesh) {
             object.castShadow = true;
             object.receiveShadow = true;
+            modelMeshes.push(object);
           }
         });
         const box = new THREE.Box3().setFromObject(model);
@@ -79,40 +85,105 @@ export default function ModelPreview({ src, alt, layers = [] }) {
     const animate = () => {
       frameId = requestAnimationFrame(animate);
       controls.update();
-      const layersKey = layers.map((layer) => `${layer.id}:${layer.x}:${layer.y}:${layer.scale}:${layer.opacity}`).join("|");
+      const layersKey = layers.map((layer) => `${layer.id}:${layer.x}:${layer.y}:${layer.scale}:${layer.opacity}:${JSON.stringify(layer.surface || null)}`).join("|");
       if (layersKey !== renderedLayersKey) {
         renderedLayersKey = layersKey;
-        stickerGroup.clear();
+        while (stickerGroup.children.length) {
+          const child = stickerGroup.children.pop();
+          child.geometry?.dispose();
+          child.material?.map?.dispose();
+          child.material?.dispose();
+        }
         layers.forEach((layer) => {
+          if (!modelMeshes[0]) return;
           const image = layer.sticker.icon || layer.sticker.image;
-          const texture = new THREE.Texture();
-          const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, depthWrite: false });
-          const sprite = new THREE.Sprite(material);
-          sprite.position.set(
-            ((layer.x - 50) / 50) * modelSize.x * 0.42,
-            ((50 - layer.y) / 50) * modelSize.y * 0.42,
-            modelSize.z * 0.6,
-          );
-          sprite.renderOrder = 10;
-          sprite.material.opacity = layer.opacity / 100;
-          sprite.scale.set(modelSize.x * 0.16 * layer.scale, modelSize.y * 0.16 * layer.scale, 1);
-          stickerGroup.add(sprite);
-          new THREE.TextureLoader().load(image, (loadedTexture) => {
-            texture.image = loadedTexture.image;
-            texture.needsUpdate = true;
-            const aspect = loadedTexture.image.width / loadedTexture.image.height || 1;
-            sprite.scale.setX(sprite.scale.y * aspect);
+          const position = layer.surface?.position
+            ? new THREE.Vector3(...layer.surface.position)
+            : new THREE.Vector3(0, 0, modelSize.z * 0.5);
+          const normal = layer.surface?.normal
+            ? new THREE.Vector3(...layer.surface.normal)
+            : new THREE.Vector3(0, 0, 1);
+          const orientation = new THREE.Euler().setFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal));
+          new THREE.TextureLoader().load(image, (texture) => {
+            const aspect = texture.image.width / texture.image.height || 1;
+            const material = new THREE.MeshBasicMaterial({
+              map: texture,
+              transparent: true,
+              depthTest: true,
+              polygonOffset: true,
+              polygonOffsetFactor: -4,
+              side: THREE.DoubleSide,
+              opacity: layer.opacity / 100,
+            });
+            const decal = new DecalGeometry(
+              modelMeshes[0],
+              position,
+              orientation,
+              new THREE.Vector3(
+                modelSize.x * 0.16 * layer.scale * aspect,
+                modelSize.x * 0.16 * layer.scale,
+                modelSize.z * 0.12,
+              ),
+            );
+            const mesh = new THREE.Mesh(decal, material);
+            mesh.userData.layerId = layer.id;
+            mesh.renderOrder = 10;
+            stickerGroup.add(mesh);
           });
         });
       }
       renderer.render(scene, camera);
     };
+    const updatePointer = (event) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+    };
+    const onPointerDown = (event) => {
+      event.stopPropagation();
+      updatePointer(event);
+      const decals = raycaster.intersectObjects(stickerGroup.children, false);
+      const hitDecal = decals[0]?.object;
+      if (hitDecal?.userData.layerId) {
+        draggingLayer = hitDecal.userData.layerId;
+        onSelectLayer?.(draggingLayer);
+        controls.enabled = false;
+        return;
+      }
+      const hitModel = raycaster.intersectObjects(modelMeshes, false)[0];
+      if (!hitModel) {
+        onSelectLayer?.(null);
+        return;
+      }
+      draggingLayer = selectedId || null;
+      if (draggingLayer) controls.enabled = false;
+    };
+    const onPointerMove = (event) => {
+      if (!draggingLayer) return;
+      updatePointer(event);
+      const hit = raycaster.intersectObjects(modelMeshes, false)[0];
+      if (!hit) return;
+      const position = model.worldToLocal(hit.point.clone());
+      const normal = model.worldToLocal(hit.point.clone().add(hit.face.normal)).sub(position).normalize();
+      onMoveLayer?.(draggingLayer, { position: position.toArray(), normal: normal.toArray() });
+    };
+    const onPointerUp = () => {
+      draggingLayer = null;
+      controls.enabled = true;
+    };
+    renderer.domElement.addEventListener("pointerdown", onPointerDown);
+    renderer.domElement.addEventListener("pointermove", onPointerMove);
+    renderer.domElement.addEventListener("pointerup", onPointerUp);
     animate();
 
     return () => {
       cancelAnimationFrame(frameId);
       observer.disconnect();
       controls.dispose();
+      renderer.domElement.removeEventListener("pointerdown", onPointerDown);
+      renderer.domElement.removeEventListener("pointermove", onPointerMove);
+      renderer.domElement.removeEventListener("pointerup", onPointerUp);
       if (model) {
         model.traverse((object) => {
           if (object.isMesh) {
@@ -125,7 +196,7 @@ export default function ModelPreview({ src, alt, layers = [] }) {
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [src, layers]);
+  }, [src, layers, selectedId, onSelectLayer, onMoveLayer]);
 
   return <div ref={containerRef} role="img" aria-label={alt} className="absolute inset-0 h-full w-full" />;
 }
