@@ -47,6 +47,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     let frameId;
     let model;
     let modelSize = new THREE.Vector3(1, 1, 1);
+    let defaultSurface = null;
     let renderedLayersKey = "";
     const stickerGroup = new THREE.Group();
     const raycaster = new THREE.Raycaster();
@@ -85,6 +86,16 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
         model.position.sub(center);
         model.scale.setScalar(2.1 / maxSize);
         model.add(stickerGroup);
+        model.updateMatrixWorld(true);
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+        const centerHit = raycaster.intersectObjects(modelMeshes, false)[0];
+        if (centerHit?.face) {
+          const worldNormal = centerHit.face.normal.clone().transformDirection(centerHit.object.matrixWorld);
+          defaultSurface = {
+            position: model.worldToLocal(centerHit.point.clone()).toArray(),
+            normal: worldNormal.clone().transformDirection(model.matrixWorld.clone().invert()).normalize().toArray(),
+          };
+        }
         renderedLayersKey = "";
         scene.add(model);
       },
@@ -108,11 +119,12 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
         currentLayers.forEach((layer) => {
           if (!modelMeshes[0]) return;
           const image = layer.sticker.icon || layer.sticker.image;
-          const position = layer.surface?.position
-            ? new THREE.Vector3(...layer.surface.position)
+          const surface = layer.surface || defaultSurface;
+          const position = surface?.position
+            ? new THREE.Vector3(...surface.position)
             : new THREE.Vector3(0, 0, modelSize.z * 0.5);
-          const normal = layer.surface?.normal
-            ? new THREE.Vector3(...layer.surface.normal)
+          const normal = surface?.normal
+            ? new THREE.Vector3(...surface.normal)
             : new THREE.Vector3(0, 0, 1);
           const orientation = new THREE.Euler().setFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal));
           orientation.z += THREE.MathUtils.degToRad(layer.rotation || 0);
