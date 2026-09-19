@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const font = clean(body.font, 40);
   const sticker = clean(body.sticker, 60);
   const engravingType = clean(body.engravingType, 30);
-  if (!productName || !name) return json(res, 400, { error: "Vui lòng nhập tên trước khi tạo demo AI." });
+  if (!productName || !name) return json(res, 400, { error: "Vui lòng nhập tên trước khi xem thử món quà." });
   if (!process.env.GEMINI_API_KEY) return json(res, 503, { error: "AI preview chưa được cấu hình trên server." });
 
   const prompt = [

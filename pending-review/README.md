@@ -32,6 +32,6 @@ production nếu chưa kiểm tra và chuẩn hóa.
 
 ## Demo mockup miễn phí
 
-Trang chi tiết sản phẩm có nút `Xem bản demo`. Demo được ghép trực tiếp trên
-trình duyệt từ ảnh sản phẩm, tên, sticker và kiểu khắc đã chọn. Chức năng này
-không gọi API tạo ảnh và không cần billing.
+Trang chi tiết sản phẩm có nút `Xem thử món quà`. Hình ảnh được ghép trực tiếp
+trên trình duyệt từ ảnh sản phẩm, tên, sticker và kiểu khắc đã chọn để khách
+thử phối món quà của riêng mình.
