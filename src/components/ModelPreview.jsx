@@ -42,6 +42,11 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     controls.enablePan = false;
     controls.minDistance = 1.5;
     controls.maxDistance = 5;
+    // Keep the product on its front-facing hemisphere; the model has a dark back shell.
+    controls.minAzimuthAngle = -Math.PI / 2;
+    controls.maxAzimuthAngle = Math.PI / 2;
+    controls.minPolarAngle = Math.PI * 0.28;
+    controls.maxPolarAngle = Math.PI * 0.72;
     controls.target.set(0, 0, 0);
 
     let frameId;
