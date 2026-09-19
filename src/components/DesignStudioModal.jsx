@@ -45,6 +45,7 @@ export default function DesignStudioModal({
   product,
   name,
   message,
+  colorHex,
   color,
   font,
   engravingType,
