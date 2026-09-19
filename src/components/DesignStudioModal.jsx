@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Copy, RotateCcw, SlidersHorizontal, Sparkles, Trash2, X } from "lucide-react";
 import { STICKERS } from "@/lib/stickers";
+import ModelPreview from "@/components/ModelPreview";
 
 const TINTS = [
   { id: "original", label: "Gốc", hex: null },
@@ -148,7 +149,13 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
 
         <main className="checkerboard-bg relative flex min-w-0 flex-1 items-center justify-center overflow-hidden p-5">
           <div className="relative aspect-square w-full max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl">
-            <img src={product.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            {product.slug === "guong-cam-tay-lap-lanh" ? (
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-100 via-white to-purple-100">
+                <ModelPreview src="/models/guong-cam-tay-lap-lanh.glb" alt={product.name} />
+              </div>
+            ) : (
+              <img src={product.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            )}
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-6 pt-20">
               <div className="mx-auto w-fit rounded-xl bg-white/85 px-4 py-2 text-center backdrop-blur">
                 {name && <div className="text-2xl font-bold" style={{ color: colorHex }}>{name}</div>}
