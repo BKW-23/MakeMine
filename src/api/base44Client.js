@@ -177,6 +177,10 @@ const products = {
     if (!supabaseUrl || !anonKey) return sampleProducts;
     const data = await supabaseRequest("/rest/v1/products?select=*&order=created_at.desc&limit=60");
     if (!Array.isArray(data)) throw new Error("Supabase returned an invalid product list.");
+    if (data.length === 0) {
+      console.warn("Supabase returned no products; showing the local sample catalog.");
+      return sampleProducts;
+    }
     return data;
   },
   create(payload) {

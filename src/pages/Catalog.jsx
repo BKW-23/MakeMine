@@ -8,16 +8,21 @@ export default function Catalog() {
   const [params, setParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [sort, setSort] = useState("new");
 
   const category = params.get("category") || "all";
 
   useEffect(() => {
     setLoading(true);
+    setError("");
     base44.entities.Product.list("-created_date", 60).then((all) => {
       setProducts(all);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch((requestError) => {
+      setError(requestError.message || "Không thể tải danh sách sản phẩm.");
+      setLoading(false);
+    });
   }, []);
 
   const filtered = useMemo(() => {
@@ -74,6 +79,10 @@ export default function Catalog() {
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="aspect-[3/4] rounded-2xl shimmer border border-border" />
           ))}
+        </div>
+      ) : error ? (
+        <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
+          {error}
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border p-12 text-center text-muted-foreground">
