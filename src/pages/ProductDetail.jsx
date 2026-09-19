@@ -150,9 +150,9 @@ export default function ProductDetail() {
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:brightness-105 disabled:opacity-60"
             >
               <Sparkles className="h-4 w-4" />
-              {demoVisible ? "Xem lại món quà" : "Xem thử món quà"}
+              {demoVisible ? "Xem lại thiết kế" : "Xem trước thiết kế"}
             </button>
-            <p className="mt-2 text-center text-xs text-muted-foreground">Thử phối tên và sticker để xem món quà nhỏ xinh của bạn nhé ✨</p>
+            <p className="mt-2 text-center text-xs text-muted-foreground">Phối tên, sticker và kiểu khắc để tạo nên món quà mang dấu ấn riêng của bạn ✨</p>
           </div>
 
           <div className="text-3xl font-bold text-primary">{formatVND(product.base_price)}</div>
