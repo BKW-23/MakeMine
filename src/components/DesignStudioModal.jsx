@@ -35,6 +35,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
   const [tint, setTint] = useState("original");
   const [opacity, setOpacity] = useState(100);
   const [scale, setScale] = useState(1);
+  const [rotation, setRotation] = useState(0);
 
   const selected = layers.find((layer) => layer.id === selectedId);
   const isModelProduct = product.slug === "guong-cam-tay-lap-lanh";
@@ -46,6 +47,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
       x: 50,
       y: 50,
       scale: 1,
+      rotation: 0,
       opacity: 100,
     };
     setLayers((current) => [...current, layer]);
@@ -71,6 +73,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
     setTint("original");
     setOpacity(100);
     setScale(1);
+    setRotation(0);
   };
 
   const saveDesign = () => {
@@ -241,6 +244,9 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
             </label>
             <label className="block text-[11px] text-slate-400">Kích thước: {scale.toFixed(1)}x
               <input type="range" min="0.5" max="2.5" step="0.1" value={scale} onChange={(event) => { setScale(Number(event.target.value)); updateSelected({ scale: Number(event.target.value) }); }} className="mt-2 w-full accent-pink-500" disabled={!selected} />
+            </label>
+            <label className="block text-[11px] text-slate-400">Xoay sticker: {rotation}°
+              <input type="range" min="-180" max="180" step="1" value={rotation} onChange={(event) => { setRotation(Number(event.target.value)); updateSelected({ rotation: Number(event.target.value) }); }} className="mt-2 w-full accent-pink-500" disabled={!selected} />
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button type="button" onClick={() => selected && addSticker(selected.sticker)} className="rounded-lg border border-slate-700 p-2 text-[11px] text-slate-300 hover:bg-slate-800"><Copy className="mx-auto mb-1 h-4 w-4" />Nhân bản</button>

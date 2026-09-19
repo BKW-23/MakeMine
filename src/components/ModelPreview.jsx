@@ -72,6 +72,8 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
           if (object.isMesh) {
             object.castShadow = true;
             object.receiveShadow = true;
+            if (Array.isArray(object.material)) object.material.forEach((material) => { material.side = THREE.FrontSide; material.depthWrite = true; });
+            else if (object.material) { object.material.side = THREE.FrontSide; object.material.depthWrite = true; }
             modelMeshes.push(object);
           }
         });
@@ -94,7 +96,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       frameId = requestAnimationFrame(animate);
       controls.update();
       const currentLayers = layersRef.current;
-      const layersKey = `${selectedIdRef.current}|${currentLayers.map((layer) => `${layer.id}:${layer.x}:${layer.y}:${layer.scale}:${layer.opacity}:${JSON.stringify(layer.surface || null)}`).join("|")}`;
+      const layersKey = `${selectedIdRef.current}|${currentLayers.map((layer) => `${layer.id}:${layer.x}:${layer.y}:${layer.scale}:${layer.opacity}:${layer.rotation || 0}:${JSON.stringify(layer.surface || null)}`).join("|")}`;
       if (layersKey !== renderedLayersKey) {
         renderedLayersKey = layersKey;
         while (stickerGroup.children.length) {
@@ -113,6 +115,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
             ? new THREE.Vector3(...layer.surface.normal)
             : new THREE.Vector3(0, 0, 1);
           const orientation = new THREE.Euler().setFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal));
+          orientation.z += THREE.MathUtils.degToRad(layer.rotation || 0);
           new THREE.TextureLoader().load(image, (texture) => {
             const aspect = texture.image.width / texture.image.height || 1;
             const material = new THREE.MeshBasicMaterial({
