@@ -22,7 +22,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
     camera.up.set(-1, 0, 0);
-    camera.position.set(0, 3.2, 0.2);
+    camera.position.set(0, defaultViewDistance, 0.2);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -55,6 +55,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     let frameId;
     let model;
     let modelSize = new THREE.Vector3(1, 1, 1);
+    let defaultViewDistance = 3.2;
     let defaultSurface = null;
     let renderedLayersKey = "";
     const stickerGroup = new THREE.Group();
@@ -95,6 +96,15 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
         model.scale.setScalar(2.1 / maxSize);
         model.add(stickerGroup);
         model.updateMatrixWorld(true);
+        const scaledBox = new THREE.Box3().setFromObject(model);
+        const scaledSphere = scaledBox.getBoundingSphere(new THREE.Sphere());
+        const fitDistance = (scaledSphere.radius / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.18;
+        defaultViewDistance = fitDistance;
+        camera.position.set(0, fitDistance, 0.2);
+        camera.lookAt(controls.target);
+        controls.minDistance = fitDistance * 0.55;
+        controls.maxDistance = fitDistance * 2.2;
+        controls.update();
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
         const centerHit = raycaster.intersectObjects(modelMeshes, false)[0];
         if (centerHit?.face) {

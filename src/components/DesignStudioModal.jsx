@@ -21,11 +21,6 @@ const CROP_POSITIONS = {
   sparkle: "50% 42%",
 };
 
-const selectLayer = (layerId) => {
-  setSelectedId(layerId);
-  if (layerId) setMobilePanel("controls");
-};
-
 const stickerCropStyle = (sticker) => ({
   backgroundImage: `url(${sticker.icon || sticker.image})`,
   backgroundPosition: CROP_POSITIONS[sticker.id] || "50% 50%",
@@ -47,6 +42,10 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
 
   const selected = layers.find((layer) => layer.id === selectedId);
   const isModelProduct = product.slug === "guong-cam-tay-lap-lanh";
+  const selectLayer = (layerId) => {
+    setSelectedId(layerId);
+    if (layerId) setMobilePanel("controls");
+  };
 
   const addSticker = (sticker) => {
     const layer = {
@@ -185,7 +184,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
         </aside>
 
         <main className="checkerboard-bg relative flex min-h-[min(45vh,460px)] min-w-0 flex-1 items-center justify-center overflow-hidden p-2 sm:min-h-[min(54vh,560px)] sm:p-5 lg:min-h-0" onPointerDown={() => { setSelectedId(null); setMobilePanel(null); }}>
-          <div className="relative aspect-square w-full max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl">
+          <div className="relative aspect-square h-auto w-[min(calc(100vw_-_1rem),calc(100%_-_1rem))] max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl lg:w-full">
             {isModelProduct ? (
               <div className="absolute inset-0 bg-gradient-to-br from-pink-100 via-white to-purple-100">
                 <ModelPreview
