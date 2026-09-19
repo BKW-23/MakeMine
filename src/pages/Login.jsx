@@ -17,6 +17,7 @@ export default function Login() {
   // Post-login destination (e.g. the MCP OAuth consent page sends users here
   // with returnTo so the grant flow can resume). Same-origin paths only.
   const returnTo = safeReturnTo();
+  const guestDestination = returnTo.startsWith("/admin") ? "/" : returnTo;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -125,6 +126,14 @@ export default function Login() {
           ) : (
             "Log in"
           )}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full h-11 font-medium text-muted-foreground"
+          onClick={() => { window.location.href = guestDestination; }}
+        >
+          Tiếp tục với tư cách khách
         </Button>
       </form>
     </AuthLayout>
