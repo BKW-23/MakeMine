@@ -311,6 +311,7 @@ export default function ProductDetail() {
           name={name.trim()}
           message={message}
           colorHex={colorHex(color)}
+          initialLayers={savedDesign}
           onSave={setSavedDesign}
           onClose={() => setStudioOpen(false)}
         />

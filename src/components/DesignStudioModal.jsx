@@ -28,9 +28,9 @@ const stickerCropStyle = (sticker) => ({
   backgroundSize: sticker.icon ? "contain" : "320%",
 });
 
-export default function DesignStudioModal({ product, name, message, colorHex, onClose, onSave }) {
+export default function DesignStudioModal({ product, name, message, colorHex, initialLayers = [], onClose, onSave }) {
   const availableStickers = useMemo(() => STICKERS.filter((item) => item.image), []);
-  const [layers, setLayers] = useState([]);
+  const [layers, setLayers] = useState(initialLayers);
   const [selectedId, setSelectedId] = useState(null);
   const [tint, setTint] = useState("original");
   const [opacity, setOpacity] = useState(100);
@@ -83,11 +83,16 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
     setScale(1);
     setRotation(0);
     setMobilePanel(null);
+    resetModelView?.();
+  };
+
+  const closeStudio = () => {
+    onSave?.(layers);
+    onClose();
   };
 
   const saveDesign = () => {
-    onSave?.(layers);
-    onClose();
+    closeStudio();
   };
 
   const handleDrag = (event, layer) => {
@@ -153,7 +158,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
           <button type="button" onClick={saveDesign} className="inline-flex items-center gap-1.5 rounded-lg bg-pink-500 px-2.5 py-2 text-xs font-semibold text-white hover:bg-pink-400 sm:px-3">
             <span className="hidden sm:inline">Lưu thiết kế</span><span className="sm:hidden">Lưu</span>
           </button>
-          <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800" aria-label="Đóng studio">
+          <button type="button" onClick={closeStudio} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800" aria-label="Đóng studio">
             <X className="h-4 w-4" />
           </button>
         </div>
