@@ -10,6 +10,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
   const selectedIdRef = useRef(selectedId);
   const onSelectLayerRef = useRef(onSelectLayer);
   const onMoveLayerRef = useRef(onMoveLayer);
+
   layersRef.current = layers;
   selectedIdRef.current = selectedId;
   onSelectLayerRef.current = onSelectLayer;
@@ -21,10 +22,9 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
 
     const scene = new THREE.Scene();
     let defaultViewDistance = 3.2;
-    const isMobileViewport = () => window.matchMedia("(max-width: 1023px)").matches;
+
     const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
-    camera.up.set(-1, 0, 0);
-    camera.position.set(0, defaultViewDistance, 0.2);
+    camera.up.set(-1, 0, 0); // Giữ nguyên hướng nhìn từ trên xuống của bạn
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -43,63 +43,8 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.enablePan = false;
-    controls.minDistance = 1.5;
-    controls.maxDistance = 5;
     controls.target.set(0, 0, 0);
-    const fitMobileView = () => {
-      if (!model || !isMobileViewport()) return;
-      const rect = container.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      camera.aspect = rect.width / rect.height;
-      camera.updateProjectionMatrix();
-      model.updateMatrixWorld(true);
-      const box = new THREE.Box3().setFromObject(model);
-      const center = box.getCenter(new THREE.Vector3());
-      const corners = [
-        new THREE.Vector3(box.min.x, box.min.y, box.min.z),
-        new THREE.Vector3(box.min.x, box.min.y, box.max.z),
-        new THREE.Vector3(box.min.x, box.max.y, box.min.z),
-        new THREE.Vector3(box.min.x, box.max.y, box.max.z),
-        new THREE.Vector3(box.max.x, box.min.y, box.min.z),
-        new THREE.Vector3(box.max.x, box.min.y, box.max.z),
-        new THREE.Vector3(box.max.x, box.max.y, box.min.z),
-        new THREE.Vector3(box.max.x, box.max.y, box.max.z),
-      ];
-      const viewDirection = new THREE.Vector3(0, -1, 0).normalize();
-      const probeCamera = camera.clone();
-      probeCamera.position.copy(center).sub(viewDirection);
-      probeCamera.lookAt(center);
-      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(probeCamera.quaternion);
-      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(probeCamera.quaternion);
-      const halfWidth = Math.max(...corners.map((corner) => Math.abs(corner.clone().sub(center).dot(right))));
-      const halfHeight = Math.max(...corners.map((corner) => Math.abs(corner.clone().sub(center).dot(up))));
-      const halfDepth = Math.max(...corners.map((corner) => Math.abs(corner.clone().sub(center).dot(viewDirection))));
-      const verticalFov = THREE.MathUtils.degToRad(camera.fov);
-      const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * (camera.aspect || 1));
-      const distanceByHeight = halfHeight / Math.tan(verticalFov / 2);
-      const distanceByWidth = halfWidth / Math.tan(horizontalFov / 2);
-      defaultViewDistance = Math.max(distanceByHeight, distanceByWidth) + halfDepth;
-      defaultViewDistance *= 1.2;
-      camera.position.copy(center).sub(viewDirection.clone().multiplyScalar(defaultViewDistance));
-      camera.lookAt(center);
-      controls.target.copy(center);
-      controls.minDistance = defaultViewDistance * 0.55;
-      controls.maxDistance = defaultViewDistance * 2.2;
-      controls.update();
-    };
-    const resetView = () => {
-      camera.up.set(-1, 0, 0);
-      if (isMobileViewport()) {
-        fitMobileView();
-      } else {
-        camera.position.set(0, defaultViewDistance, 0.2);
-        controls.target.set(0, 0, 0);
-      }
-      controls.update();
-    };
-    onResetView?.(() => resetView);
 
-    let frameId;
     let model;
     let modelSize = new THREE.Vector3(1, 1, 1);
     let defaultSurface = null;
@@ -109,57 +54,109 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     const pointer = new THREE.Vector2();
     const modelMeshes = [];
     let draggingLayer = null;
+
+    // --- HÀM CANH TÂM VÀ FIT CAMERA DÙNG CHUNG CHO PC VÀ MOBILE ---
+    const fitCameraToView = () => {
+      if (!model) return;
+
+      const rect = container.getBoundingClientRect();
+      const width = rect.width || 1;
+      const height = rect.height || 1;
+      const aspect = width / height;
+
+      camera.aspect = aspect;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height, false);
+
+      // Tính Bounding Sphere chuẩn sau khi model đã đưa về (0,0,0)
+      model.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(model);
+      const sphere = box.getBoundingSphere(new THREE.Sphere());
+      const radius = sphere.radius || 1;
+
+      // Tính khoảng cách cần thiết cho cả 2 chiều (Dọc & Ngang) để không bao giờ bị cắt viền
+      const vFov = THREE.MathUtils.degToRad(camera.fov);
+      const distVertical = radius / Math.sin(vFov / 2);
+
+      const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+      const distHorizontal = radius / Math.sin(hFov / 2);
+
+      // Lấy khoảng cách lớn hơn + 30% margin an toàn
+      defaultViewDistance = Math.max(distVertical, distHorizontal) * 1.3;
+
+      // Đặt camera luôn nhìn thẳng vào gốc (0,0,0)
+      camera.position.set(0, defaultViewDistance, 0.01);
+      camera.lookAt(0, 0, 0);
+
+      controls.target.set(0, 0, 0);
+      controls.minDistance = defaultViewDistance * 0.4;
+      controls.maxDistance = defaultViewDistance * 2.5;
+      controls.update();
+    };
+
+    const resetView = () => {
+      camera.up.set(-1, 0, 0);
+      fitCameraToView();
+    };
+    onResetView?.(() => resetView);
+
     let resizeFrame = 0;
     const resize = () => {
       cancelAnimationFrame(resizeFrame);
       resizeFrame = requestAnimationFrame(() => {
-        const rect = container.getBoundingClientRect();
-        const width = rect.width || 1;
-        const height = rect.height || 1;
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-        renderer.setSize(width, height, false);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        fitMobileView();
+        fitCameraToView();
       });
     };
     const observer = new ResizeObserver(resize);
     observer.observe(container);
-    resize();
 
+    // --- LOAD MODEL ---
     new GLTFLoader().load(
       src,
       (gltf) => {
         model = gltf.scene;
+        modelMeshes.length = 0;
+
         model.traverse((object) => {
           if (object.isMesh) {
             object.castShadow = true;
             object.receiveShadow = true;
-            if (Array.isArray(object.material)) object.material.forEach((material) => { material.side = THREE.FrontSide; material.depthWrite = true; });
-            else if (object.material) { object.material.side = THREE.FrontSide; object.material.depthWrite = true; }
+            if (Array.isArray(object.material)) {
+              object.material.forEach((material) => {
+                material.side = THREE.FrontSide;
+                material.depthWrite = true;
+              });
+            } else if (object.material) {
+              object.material.side = THREE.FrontSide;
+              object.material.depthWrite = true;
+            }
             modelMeshes.push(object);
           }
         });
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-        modelSize = size.clone();
+
+        // 1. Tính toán kích thước ban đầu
+        let box = new THREE.Box3().setFromObject(model);
+        let center = box.getCenter(new THREE.Vector3());
+        let size = box.getSize(new THREE.Vector3());
         const maxSize = Math.max(size.x, size.y, size.z) || 1;
-        model.position.sub(center);
+
+        // 2. Scale chuẩn hóa về kích thước tương đương nhau
         model.scale.setScalar(2.1 / maxSize);
-        model.add(stickerGroup);
+
+        // 3. ĐƯA CHÍNH XÁC TÂM MODEL VỀ (0,0,0) THỰC TẾ
         model.updateMatrixWorld(true);
-        const scaledBox = new THREE.Box3().setFromObject(model);
-        const scaledSphere = scaledBox.getBoundingSphere(new THREE.Sphere());
-        const fitDistance = (scaledSphere.radius / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.35;
-        defaultViewDistance = fitDistance;
-        controls.target.copy(scaledSphere.center);
-        camera.position.set(scaledSphere.center.x, scaledSphere.center.y + fitDistance, scaledSphere.center.z);
-        camera.lookAt(scaledSphere.center);
-        controls.minDistance = fitDistance * 0.55;
-        controls.maxDistance = fitDistance * 2.2;
-        controls.update();
-        fitMobileView();
+        box.setFromObject(model);
+        center = box.getCenter(new THREE.Vector3());
+        model.position.sub(center); // Dịch chuyển model sao cho tâm BoundingBox nằm đúng tại 0,0,0
+
+        modelSize = box.getSize(new THREE.Vector3());
+        model.add(stickerGroup);
+        scene.add(model);
+
+        // Fit camera theo kích thước màn hình hiện tại
+        fitCameraToView();
+
+        // Tìm điểm mặt định để dán sticker ban đầu
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
         const centerHit = raycaster.intersectObjects(modelMeshes, false)[0];
         if (centerHit?.face) {
@@ -170,18 +167,27 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
           };
         }
         renderedLayersKey = "";
-        scene.add(model);
-        fitMobileView();
       },
       undefined,
-      (error) => console.error("Unable to load product model.", error),
+      (error) => console.error("Unable to load product model.", error)
     );
 
+    // --- RENDER LOOP & STICKERS ---
+    let frameId;
     const animate = () => {
       frameId = requestAnimationFrame(animate);
       controls.update();
+
       const currentLayers = layersRef.current;
-      const layersKey = `${selectedIdRef.current}|${currentLayers.map((layer) => `${layer.id}:${layer.x}:${layer.y}:${layer.scale}:${layer.opacity}:${layer.rotation || 0}:${JSON.stringify(layer.surface || null)}`).join("|")}`;
+      const layersKey = `${selectedIdRef.current}|${currentLayers
+        .map(
+          (layer) =>
+            `${layer.id}:${layer.x}:${layer.y}:${layer.scale}:${layer.opacity}:${layer.rotation \vert{}\vert{} 0}:${JSON.stringify(
+              layer.surface || null
+            )}`
+        )
+        .join("|")}`;
+
       if (layersKey !== renderedLayersKey) {
         renderedLayersKey = layersKey;
         while (stickerGroup.children.length) {
@@ -190,6 +196,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
           child.material?.map?.dispose();
           child.material?.dispose();
         }
+
         currentLayers.forEach((layer) => {
           if (!modelMeshes[0]) return;
           const image = layer.sticker.icon || layer.sticker.image;
@@ -200,8 +207,11 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
           const normal = surface?.normal
             ? new THREE.Vector3(...surface.normal)
             : new THREE.Vector3(0, 0, 1);
-          const orientation = new THREE.Euler().setFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal));
+          const orientation = new THREE.Euler().setFromQuaternion(
+            new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
+          );
           orientation.z += THREE.MathUtils.degToRad(layer.rotation || 0);
+
           new THREE.TextureLoader().load(image, (texture) => {
             const aspect = texture.image.width / texture.image.height || 1;
             const material = new THREE.MeshBasicMaterial({
@@ -213,6 +223,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
               side: THREE.FrontSide,
               opacity: layer.opacity / 100,
             });
+
             const decal = new DecalGeometry(
               modelMeshes[0],
               position,
@@ -220,33 +231,37 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
               new THREE.Vector3(
                 modelSize.x * 0.16 * layer.scale * aspect,
                 modelSize.x * 0.16 * layer.scale,
-                Math.max(modelSize.z * 0.04, 0.001),
-              ),
+                Math.max(modelSize.z * 0.04, 0.001)
+              )
             );
             const mesh = new THREE.Mesh(decal, material);
             mesh.userData.layerId = layer.id;
             mesh.renderOrder = 10;
             stickerGroup.add(mesh);
+
             const pickMesh = new THREE.Mesh(
               new THREE.PlaneGeometry(
                 modelSize.x * 0.16 * layer.scale * aspect,
-                modelSize.x * 0.16 * layer.scale,
+                modelSize.x * 0.16 * layer.scale
               ),
-              new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthTest: false, side: THREE.DoubleSide }),
+              new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthTest: false, side: THREE.DoubleSide })
             );
             pickMesh.position.copy(position);
             pickMesh.rotation.copy(orientation);
             pickMesh.userData.layerId = layer.id;
             pickMesh.userData.isStickerPick = true;
             stickerGroup.add(pickMesh);
+
             if (layer.id === selectedIdRef.current) {
               const outlineMaterial = new THREE.LineBasicMaterial({ color: 0x3b82f6, depthTest: false });
               const outline = new THREE.LineSegments(
-                new THREE.EdgesGeometry(new THREE.PlaneGeometry(
-                  modelSize.x * 0.16 * layer.scale * aspect,
-                  modelSize.x * 0.16 * layer.scale,
-                )),
-                outlineMaterial,
+                new THREE.EdgesGeometry(
+                  new THREE.PlaneGeometry(
+                    modelSize.x * 0.16 * layer.scale * aspect,
+                    modelSize.x * 0.16 * layer.scale
+                  )
+                ),
+                outlineMaterial
               );
               outline.position.copy(position);
               outline.rotation.copy(orientation);
@@ -259,12 +274,15 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       }
       renderer.render(scene, camera);
     };
+
+    // --- SỰ KIỆN CHUỘT / TẠO STICKER DRAG ---
     const updatePointer = (event) => {
       const rect = renderer.domElement.getBoundingClientRect();
       pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
     };
+
     const getFrontModelHit = () => {
       const intersections = raycaster.intersectObjects(modelMeshes, false);
       return intersections.find((intersection) => {
@@ -275,6 +293,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
         return worldNormal.dot(raycaster.ray.direction) < 0;
       });
     };
+
     const onPointerDown = (event) => {
       event.stopPropagation();
       updatePointer(event);
@@ -295,6 +314,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       }
       onSelectLayerRef.current?.(null);
     };
+
     const onPointerMove = (event) => {
       if (!draggingLayer) return;
       updatePointer(event);
@@ -308,10 +328,12 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
         .normalize();
       onMoveLayerRef.current?.(draggingLayer, { position: position.toArray(), normal: normal.toArray() });
     };
+
     const onPointerUp = () => {
       draggingLayer = null;
       controls.enabled = true;
     };
+
     renderer.domElement.addEventListener("pointerdown", onPointerDown);
     renderer.domElement.addEventListener("pointermove", onPointerMove);
     renderer.domElement.addEventListener("pointerup", onPointerUp);
