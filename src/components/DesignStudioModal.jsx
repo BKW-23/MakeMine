@@ -28,7 +28,7 @@ const stickerCropStyle = (sticker) => ({
   backgroundSize: sticker.icon ? "contain" : "320%",
 });
 
-export default function DesignStudioModal({ product, name, message, colorHex, onClose }) {
+export default function DesignStudioModal({ product, name, message, colorHex, onClose, onSave }) {
   const availableStickers = useMemo(() => STICKERS.filter((item) => item.image), []);
   const [layers, setLayers] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -63,6 +63,11 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
     setTint("original");
     setOpacity(100);
     setScale(1);
+  };
+
+  const saveDesign = () => {
+    onSave?.(layers);
+    onClose();
   };
 
   const handleDrag = (event, layer) => {
@@ -125,6 +130,9 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
           <button type="button" onClick={reset} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800">
             <RotateCcw className="h-3.5 w-3.5" /> Làm mới
           </button>
+          <button type="button" onClick={saveDesign} className="inline-flex items-center gap-1.5 rounded-lg bg-pink-500 px-3 py-2 text-xs font-semibold text-white hover:bg-pink-400">
+            Lưu thiết kế
+          </button>
           <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800" aria-label="Đóng studio">
             <X className="h-4 w-4" />
           </button>
@@ -147,8 +155,8 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
           </div>
         </aside>
 
-        <main className="checkerboard-bg relative flex min-w-0 flex-1 items-center justify-center overflow-hidden p-5">
-          <div className="relative aspect-square w-full max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl">
+        <main className="checkerboard-bg relative flex min-w-0 flex-1 items-center justify-center overflow-hidden p-5" onPointerDown={() => setSelectedId(null)}>
+          <div className="relative aspect-square w-full max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl" onPointerDown={(event) => event.stopPropagation()}>
             {product.slug === "guong-cam-tay-lap-lanh" ? (
               <div className="absolute inset-0 bg-gradient-to-br from-pink-100 via-white to-purple-100">
                 <ModelPreview src="/models/guong-cam-tay-lap-lanh.glb" alt={product.name} />
@@ -181,6 +189,11 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
                       filter: tint !== "original" ? `sepia(1) saturate(3) hue-rotate(${tint === "blue" ? "145deg" : tint === "pink" ? "290deg" : "0deg"})` : "none",
                     }}
                   />
+                  {layer.sticker.id === "bear" && (
+                    <div className="pointer-events-none absolute inset-0">
+                      <ModelPreview src="/models/sticker-bear.glb" alt={layer.sticker.label} />
+                    </div>
+                  )}
                   {selectedLayer && (
                     <>
                       <span className="pointer-events-none absolute -inset-1 rounded border-2 border-blue-500" />

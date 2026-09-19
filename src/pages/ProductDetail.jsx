@@ -6,6 +6,7 @@ import { useCart } from "@/lib/cart";
 import { imageFor, formatVND } from "@/lib/productImages";
 import GreetingGenerator from "@/components/GreetingGenerator";
 import { STICKERS } from "@/lib/stickers";
+import DesignStudioModal from "@/components/DesignStudioModal";
 
 const ENGRAVING_COLORS = [
   { id: "Hồng đào", hex: "#E887A5" },
@@ -37,6 +38,8 @@ export default function ProductDetail() {
   const [message, setMessage] = useState("");
   const [demoVisible, setDemoVisible] = useState(false);
   const [expandedSticker, setExpandedSticker] = useState(null);
+  const [studioOpen, setStudioOpen] = useState(false);
+  const [savedDesign, setSavedDesign] = useState([]);
 
   useEffect(() => {
     setLoading(true);
@@ -68,7 +71,7 @@ export default function ProductDetail() {
 
   const handleAdd = () => {
     const customization = product.customizable
-      ? { name: name.trim(), color, font, sticker, engravingType, message: message || undefined }
+      ? { name: name.trim(), color, font, sticker, engravingType, message: message || undefined, designLayers: savedDesign }
       : {};
     addItem({
       key: product.id + JSON.stringify(customization),
@@ -146,7 +149,7 @@ export default function ProductDetail() {
           <div className="rounded-xl border border-primary/25 bg-primary/5 p-3">
             <button
               type="button"
-              onClick={() => setDemoVisible(true)}
+              onClick={() => { setDemoVisible(true); setStudioOpen(true); }}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:brightness-105 disabled:opacity-60"
             >
               <Sparkles className="h-4 w-4" />
@@ -301,6 +304,16 @@ export default function ProductDetail() {
             <p className="pt-2 text-center text-sm font-medium">{expandedSticker.label}</p>
           </div>
         </div>
+      )}
+      {studioOpen && (
+        <DesignStudioModal
+          product={product}
+          name={name.trim()}
+          message={message}
+          colorHex={colorHex(color)}
+          onSave={setSavedDesign}
+          onClose={() => setStudioOpen(false)}
+        />
       )}
     </div>
   );
