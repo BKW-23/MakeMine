@@ -5,19 +5,10 @@ import { base44 } from "@/api/base44Client";
 import { useCart } from "@/lib/cart";
 import { imageFor, formatVND } from "@/lib/productImages";
 import GreetingGenerator from "@/components/GreetingGenerator";
+import { STICKERS } from "@/lib/stickers";
 
 const DEFAULT_COLORS = ["Mint", "Lilac", "Trắng", "Đen", "Hồng"];
 const DEFAULT_FONTS = ["Sans", "Script", "Mono"];
-const STICKERS = [
-  { id: "none", label: "Không sticker", emoji: "—" },
-  { id: "hello-kitty", label: "Hello Kitty", emoji: "🎀" },
-  { id: "bow", label: "Nơ", emoji: "🎀" },
-  { id: "star", label: "Sao", emoji: "★" },
-  { id: "heart", label: "Tim", emoji: "♥" },
-  { id: "bear", label: "Gấu", emoji: "🐻" },
-  { id: "flower", label: "Hoa", emoji: "✿" },
-  { id: "sparkle", label: "Lấp lánh", emoji: "✦" },
-];
 const ENGRAVING_TYPES = [
   { id: "raised", label: "Khắc nổi" },
   { id: "engraved", label: "Khắc chìm" },

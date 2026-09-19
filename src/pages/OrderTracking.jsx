@@ -4,6 +4,7 @@ import { Search, Package } from "lucide-react";
 import { formatVND } from "@/lib/productImages";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
+import { stickerLabel } from "@/lib/stickers";
 
 const STATUS = {
   pending: { label: "Chờ xác nhận", color: "text-amber-600 bg-amber-100/70" },
@@ -131,7 +132,7 @@ export default function OrderTracking() {
                       <span>
                         {it.name} ×{it.quantity}
                         {it.customization?.name && <span className="text-muted-foreground font-mono"> · "{it.customization.name}"</span>}
-                        {it.customization?.sticker && it.customization.sticker !== "none" && <span className="text-muted-foreground"> · sticker {it.customization.sticker}</span>}
+                        {it.customization?.sticker && it.customization.sticker !== "none" && <span className="text-muted-foreground"> · sticker {stickerLabel(it.customization.sticker)}</span>}
                         {it.customization?.engravingType && <span className="text-muted-foreground"> · {it.customization.engravingType === "raised" ? "khắc nổi" : "khắc chìm"}</span>}
                       </span>
                       <span className="text-muted-foreground">{formatVND(it.unit_price * it.quantity)}</span>

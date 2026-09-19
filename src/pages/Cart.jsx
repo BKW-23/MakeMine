@@ -4,6 +4,7 @@ import { Minus, Plus, Trash2, ShoppingBag, Loader2, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useCart } from "@/lib/cart";
 import { formatVND } from "@/lib/productImages";
+import { stickerLabel } from "@/lib/stickers";
 
 export default function Cart() {
   const { items, removeItem, updateQty, total, clear } = useCart();
@@ -109,7 +110,7 @@ export default function Cart() {
                 )}
                 {(i.customization?.sticker !== "none" || i.customization?.engravingType) && (
                   <div className="mt-1 text-xs text-muted-foreground">
-                    {i.customization?.sticker && i.customization.sticker !== "none" && `Sticker: ${i.customization.sticker}`}
+                    {i.customization?.sticker && i.customization.sticker !== "none" && `Sticker: ${stickerLabel(i.customization.sticker)}`}
                     {i.customization?.sticker !== "none" && i.customization?.engravingType && " · "}
                     {i.customization?.engravingType && `Kiểu khắc: ${i.customization.engravingType === "raised" ? "khắc nổi" : "khắc chìm"}`}
                   </div>
