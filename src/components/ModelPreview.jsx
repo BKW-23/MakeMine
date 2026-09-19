@@ -42,11 +42,6 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     controls.enablePan = false;
     controls.minDistance = 1.5;
     controls.maxDistance = 5;
-    // Keep the product on its front-facing hemisphere; the model has a dark back shell.
-    controls.minAzimuthAngle = -Math.PI / 2;
-    controls.maxAzimuthAngle = Math.PI / 2;
-    controls.minPolarAngle = Math.PI * 0.28;
-    controls.maxPolarAngle = Math.PI * 0.72;
     controls.target.set(0, 0, 0);
 
     let frameId;
@@ -129,7 +124,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
               depthTest: true,
               polygonOffset: true,
               polygonOffsetFactor: -4,
-              side: THREE.DoubleSide,
+              side: THREE.FrontSide,
               opacity: layer.opacity / 100,
             });
             const decal = new DecalGeometry(
@@ -139,7 +134,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
               new THREE.Vector3(
                 modelSize.x * 0.16 * layer.scale * aspect,
                 modelSize.x * 0.16 * layer.scale,
-                modelSize.z * 0.12,
+                Math.max(modelSize.z * 0.04, 0.001),
               ),
             );
             const mesh = new THREE.Mesh(decal, material);
@@ -172,6 +167,16 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
     };
+    const getFrontModelHit = () => {
+      const intersections = raycaster.intersectObjects(modelMeshes, false);
+      return intersections.find((intersection) => {
+        if (!intersection.face) return true;
+        const worldNormal = intersection.face.normal
+          .clone()
+          .transformDirection(intersection.object.matrixWorld);
+        return worldNormal.dot(raycaster.ray.direction) < 0;
+      });
+    };
     const onPointerDown = (event) => {
       event.stopPropagation();
       updatePointer(event);
@@ -183,7 +188,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
         controls.enabled = false;
         return;
       }
-      const hitModel = raycaster.intersectObjects(modelMeshes, false)[0];
+      const hitModel = getFrontModelHit();
       if (!hitModel) {
         onSelectLayerRef.current?.(null);
         return;
@@ -193,10 +198,14 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     const onPointerMove = (event) => {
       if (!draggingLayer) return;
       updatePointer(event);
-      const hit = raycaster.intersectObjects(modelMeshes, false)[0];
+      const hit = getFrontModelHit();
       if (!hit) return;
       const position = model.worldToLocal(hit.point.clone());
-      const normal = model.worldToLocal(hit.point.clone().add(hit.face.normal)).sub(position).normalize();
+      const worldNormal = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+      const normal = worldNormal
+        .clone()
+        .transformDirection(model.matrixWorld.clone().invert())
+        .normalize();
       onMoveLayerRef.current?.(draggingLayer, { position: position.toArray(), normal: normal.toArray() });
     };
     const onPointerUp = () => {
