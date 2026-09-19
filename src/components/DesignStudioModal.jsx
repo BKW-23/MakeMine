@@ -253,7 +253,7 @@ export default function DesignStudioModal({
           </div>
         </aside>
 
-        <main className="checkerboard-bg relative flex min-h-[min(45vh,460px)] min-w-0 flex-1 items-center justify-center overflow-hidden p-2 sm:min-h-[min(54vh,560px)] sm:p-5 lg:min-h-0" onPointerDown={() => { setSelectedId(null); setMobilePanel(null); }}>
+        <main className="checkerboard-bg relative flex min-h-[min(45vh,460px)] min-w-0 flex-1 items-center justify-center overflow-hidden p-2 sm:min-h-[min(54vh,560px)] sm:p-5 lg:min-h-0" onPointerDown={() => { setSelectedId(null); setTextSelected(false); setMobilePanel(null); }}>
           <div className="relative aspect-square h-auto w-[min(calc(100vw_-_1rem),calc(100%_-_1rem))] max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl lg:w-full">
             {isModelProduct ? (
               <div className="absolute inset-0 bg-gradient-to-br from-pink-100 via-white to-purple-100">
@@ -277,7 +277,7 @@ export default function DesignStudioModal({
                 onPointerDown={handleTextDrag}
                 onClick={(event) => { event.stopPropagation(); setTextSelected(true); }}
                 onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setTextSelected(true); }}
-                className={`absolute z-20 max-w-[82%] -translate-x-1/2 -translate-y-1/2 cursor-move rounded-xl bg-white/85 px-4 py-2 text-center shadow-sm backdrop-blur ${textSelected ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
+                className={`absolute z-20 max-w-[82%] -translate-x-1/2 -translate-y-1/2 cursor-move rounded-xl bg-white/85 px-4 py-2 text-center shadow-sm backdrop-blur ${textSelected ? "ring-2 ring-blue-500 ring-offset-2" : "border border-transparent"}`}
                 style={{ left: `${textPosition.x}%`, top: `${textPosition.y}%` }}
               >
                 {name && <div className="text-2xl font-bold" style={{ color: colorHex }}>{name}</div>}
