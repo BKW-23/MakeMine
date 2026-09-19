@@ -98,10 +98,11 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
         model.updateMatrixWorld(true);
         const scaledBox = new THREE.Box3().setFromObject(model);
         const scaledSphere = scaledBox.getBoundingSphere(new THREE.Sphere());
-        const fitDistance = (scaledSphere.radius / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.18;
+        const fitDistance = (scaledSphere.radius / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.35;
         defaultViewDistance = fitDistance;
-        camera.position.set(0, fitDistance, 0.2);
-        camera.lookAt(controls.target);
+        controls.target.copy(scaledSphere.center);
+        camera.position.set(scaledSphere.center.x, scaledSphere.center.y + fitDistance, scaledSphere.center.z);
+        camera.lookAt(scaledSphere.center);
         controls.minDistance = fitDistance * 0.55;
         controls.maxDistance = fitDistance * 2.2;
         controls.update();
