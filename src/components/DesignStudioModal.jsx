@@ -126,25 +126,25 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-slate-950 text-slate-100" onPointerDown={() => setShowInstructions(false)}>
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-800 bg-slate-950 px-4">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-800 bg-slate-950 px-3 sm:h-16 sm:px-4">
         <div className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-tr from-pink-500 to-purple-600">
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-pink-500 to-purple-600 sm:h-9 sm:w-9">
             <Sparkles className="h-5 w-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2 text-sm font-bold">
-              MakeMine Design Studio
+              <span className="truncate">MakeMine Design Studio</span>
               <span className="rounded-full bg-pink-500/10 px-2 py-0.5 text-[10px] text-pink-300">Xinh xắn 1.0</span>
             </div>
-            <p className="text-[11px] text-slate-400">Phối sticker và tạo mẫu quà riêng của bạn</p>
+            <p className="hidden text-[11px] text-slate-400 sm:block">Phối sticker và tạo mẫu quà riêng của bạn</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={reset} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800">
-            <RotateCcw className="h-3.5 w-3.5" /> Làm mới
+          <button type="button" onClick={reset} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-2.5 py-2 text-xs text-slate-300 hover:bg-slate-800 sm:px-3">
+            <RotateCcw className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Làm mới</span>
           </button>
-          <button type="button" onClick={saveDesign} className="inline-flex items-center gap-1.5 rounded-lg bg-pink-500 px-3 py-2 text-xs font-semibold text-white hover:bg-pink-400">
-            Lưu thiết kế
+          <button type="button" onClick={saveDesign} className="inline-flex items-center gap-1.5 rounded-lg bg-pink-500 px-2.5 py-2 text-xs font-semibold text-white hover:bg-pink-400 sm:px-3">
+            <span className="hidden sm:inline">Lưu thiết kế</span><span className="sm:hidden">Lưu</span>
           </button>
           <button type="button" onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800" aria-label="Đóng studio">
             <X className="h-4 w-4" />
@@ -152,15 +152,15 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        <aside className="hidden w-72 shrink-0 flex-col border-r border-slate-800 bg-slate-950 p-3 sm:flex">
-          <div className="mb-3 flex items-center gap-2 border-b border-pink-500 pb-3 text-sm font-semibold text-pink-300">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
+        <aside className="flex max-h-36 w-full shrink-0 flex-col border-b border-slate-800 bg-slate-950 p-3 lg:max-h-none lg:w-72 lg:border-b-0 lg:border-r">
+          <div className="mb-2 flex items-center gap-2 border-b border-pink-500 pb-2 text-sm font-semibold text-pink-300 lg:mb-3 lg:pb-3">
             <Sparkles className="h-4 w-4" /> Kho sticker
           </div>
-          <p className="mb-3 text-[11px] text-slate-400">Bấm vào mẫu để thêm vào thiết kế</p>
-          <div className="grid grid-cols-2 gap-2 overflow-y-auto pr-1">
+          <p className="mb-2 text-[11px] text-slate-400 lg:mb-3">Bấm vào mẫu để thêm vào thiết kế</p>
+          <div className="flex min-h-0 gap-2 overflow-x-auto pb-1 lg:grid lg:grid-cols-2 lg:gap-2 lg:overflow-y-auto lg:overflow-x-hidden lg:pr-1">
             {availableStickers.map((item) => (
-              <button key={item.id} type="button" onClick={() => addSticker(item)} className="group rounded-xl border border-slate-800 bg-slate-900 p-2 text-left hover:border-pink-500">
+              <button key={item.id} type="button" onClick={() => addSticker(item)} className="group w-24 shrink-0 rounded-xl border border-slate-800 bg-slate-900 p-1.5 text-left hover:border-pink-500 lg:w-auto lg:p-2">
                 <img src={item.image} alt={item.label} className="aspect-square w-full rounded-lg object-cover transition group-hover:scale-105" />
                 <span className="mt-1 block truncate text-[11px] text-slate-300 group-hover:text-pink-300">{item.label}</span>
               </button>
@@ -168,7 +168,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
           </div>
         </aside>
 
-        <main className="checkerboard-bg relative flex min-w-0 flex-1 items-center justify-center overflow-hidden p-5" onPointerDown={() => setSelectedId(null)}>
+        <main className="checkerboard-bg relative flex min-h-[min(45vh,460px)] min-w-0 flex-none items-center justify-center overflow-hidden p-2 sm:min-h-[min(54vh,560px)] sm:p-5 lg:min-h-0 lg:flex-1" onPointerDown={() => setSelectedId(null)}>
           <div className="relative aspect-square w-full max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl">
             {isModelProduct ? (
               <div className="absolute inset-0 bg-gradient-to-br from-pink-100 via-white to-purple-100">
@@ -262,7 +262,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
           )}
         </main>
 
-        <aside className="hidden w-72 shrink-0 flex-col border-l border-slate-800 bg-slate-950 sm:flex">
+        <aside className="flex max-h-[38vh] w-full shrink-0 flex-col overflow-y-auto border-t border-slate-800 bg-slate-950 lg:max-h-none lg:w-72 lg:border-l lg:border-t-0">
           <div className="flex items-center gap-2 border-b border-slate-800 p-4 text-xs font-semibold uppercase tracking-wider text-slate-300">
             <SlidersHorizontal className="h-4 w-4 text-pink-400" /> Tùy chỉnh sticker
           </div>
