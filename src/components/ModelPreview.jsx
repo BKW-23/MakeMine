@@ -50,15 +50,35 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       if (!model || !isMobileViewport()) return;
       model.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(model);
-      const sphere = box.getBoundingSphere(new THREE.Sphere());
-      const aspect = camera.aspect || 1;
-      const verticalHalfFov = THREE.MathUtils.degToRad(camera.fov / 2);
-      const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * aspect);
-      const limitingHalfFov = Math.min(verticalHalfFov, horizontalHalfFov);
-      defaultViewDistance = (sphere.radius / Math.sin(limitingHalfFov)) * 1.25;
-      camera.position.set(sphere.center.x, sphere.center.y + defaultViewDistance, sphere.center.z);
-      camera.lookAt(sphere.center);
-      controls.target.copy(sphere.center);
+      const center = box.getCenter(new THREE.Vector3());
+      const corners = [
+        new THREE.Vector3(box.min.x, box.min.y, box.min.z),
+        new THREE.Vector3(box.min.x, box.min.y, box.max.z),
+        new THREE.Vector3(box.min.x, box.max.y, box.min.z),
+        new THREE.Vector3(box.min.x, box.max.y, box.max.z),
+        new THREE.Vector3(box.max.x, box.min.y, box.min.z),
+        new THREE.Vector3(box.max.x, box.min.y, box.max.z),
+        new THREE.Vector3(box.max.x, box.max.y, box.min.z),
+        new THREE.Vector3(box.max.x, box.max.y, box.max.z),
+      ];
+      const viewDirection = new THREE.Vector3(0, -1, 0).normalize();
+      const probeCamera = camera.clone();
+      probeCamera.position.copy(center).sub(viewDirection);
+      probeCamera.lookAt(center);
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(probeCamera.quaternion);
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(probeCamera.quaternion);
+      const halfWidth = Math.max(...corners.map((corner) => Math.abs(corner.clone().sub(center).dot(right))));
+      const halfHeight = Math.max(...corners.map((corner) => Math.abs(corner.clone().sub(center).dot(up))));
+      const halfDepth = Math.max(...corners.map((corner) => Math.abs(corner.clone().sub(center).dot(viewDirection))));
+      const verticalFov = THREE.MathUtils.degToRad(camera.fov);
+      const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * (camera.aspect || 1));
+      const distanceByHeight = halfHeight / Math.tan(verticalFov / 2);
+      const distanceByWidth = halfWidth / Math.tan(horizontalFov / 2);
+      defaultViewDistance = Math.max(distanceByHeight, distanceByWidth) + halfDepth;
+      defaultViewDistance *= 1.2;
+      camera.position.copy(center).sub(viewDirection.clone().multiplyScalar(defaultViewDistance));
+      camera.lookAt(center);
+      controls.target.copy(center);
       controls.minDistance = defaultViewDistance * 0.55;
       controls.maxDistance = defaultViewDistance * 2.2;
       controls.update();
