@@ -4,7 +4,7 @@ export const STICKERS = [
   { id: "heart", label: "Tim tí hon", emoji: "♡", image: "/stickers/heart.jpg" },
   { id: "hello-kitty", label: "Kitty miu miu", emoji: "♡", image: "/stickers/hello-kitty.jpg" },
   { id: "star", label: "Sao lấp lánh", emoji: "★", image: "/stickers/star.jpg" },
-  { id: "bear", label: "Gấu mũm mĩm", emoji: "🐻", image: "/stickers/bear.jpg" },
+  { id: "bear", label: "Gấu mũm mĩm", emoji: "🐻", image: "/stickers/bear.jpg", icon: "/stickers/bear-icon.png" },
   { id: "sparkle", label: "Lấp la lấp lánh", emoji: "✦", image: "/stickers/sparkle.jpg" },
 ];
 

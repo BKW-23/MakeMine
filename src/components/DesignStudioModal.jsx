@@ -21,10 +21,10 @@ const CROP_POSITIONS = {
 };
 
 const stickerCropStyle = (sticker) => ({
-  backgroundImage: `url(${sticker.image})`,
+  backgroundImage: `url(${sticker.icon || sticker.image})`,
   backgroundPosition: CROP_POSITIONS[sticker.id] || "50% 50%",
   backgroundRepeat: "no-repeat",
-  backgroundSize: "320%",
+  backgroundSize: sticker.icon ? "contain" : "320%",
 });
 
 export default function DesignStudioModal({ product, name, message, colorHex, onClose }) {
