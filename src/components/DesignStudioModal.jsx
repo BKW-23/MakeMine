@@ -248,8 +248,15 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
                 onPointerDown={(event) => event.stopPropagation()}
               >
                 <div className="mb-2 flex items-center gap-2 font-semibold text-pink-300">
-                  <HelpCircle className="h-4 w-4" /> Cách chỉnh sticker
+                  <HelpCircle className="h-4 w-4" /> Cách chỉnh thiết kế
                 </div>
+                {isModelProduct && (
+                  <>
+                    <p>Vuốt bằng 1 ngón để xoay sản phẩm.</p>
+                    <p className="mt-1">Dùng 2 ngón để kéo sản phẩm hoặc chụm/mở để thu phóng.</p>
+                    <p className="mt-1">Bấm “Đưa về chính diện” để trở lại góc nhìn ban đầu.</p>
+                  </>
+                )}
                 <p>Bấm vào sticker để chọn và hiện khung chỉnh sửa.</p>
                 <p className="mt-1">Kéo sticker để di chuyển trên sản phẩm.</p>
                 <p className="mt-1">Bấm ra ngoài viền sticker để bỏ chọn.</p>
