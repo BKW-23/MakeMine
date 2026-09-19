@@ -182,7 +182,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       const layersKey = `${selectedIdRef.current}|${currentLayers
         .map(
           (layer) =>
-            `${layer.id}:${layer.x}:${layer.y}:${layer.scale}:${layer.opacity}:${layer.rotation \vert{}\vert{} 0}:${JSON.stringify(
+            `${layer.id}:${layer.x}:${layer.y}:${layer.scale}:${layer.opacity}:${layer.rotation || 0}:${JSON.stringify(
               layer.surface || null
             )}`
         )
