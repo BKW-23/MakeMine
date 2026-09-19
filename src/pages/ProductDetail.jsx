@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, ShoppingBag, Check, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingBag, Check, Sparkles } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useCart } from "@/lib/cart";
 import { imageFor, formatVND } from "@/lib/productImages";
@@ -37,9 +37,7 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [message, setMessage] = useState("");
-  const [aiPreview, setAiPreview] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState("");
+  const [demoVisible, setDemoVisible] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -87,27 +85,6 @@ export default function ProductDetail() {
     setTimeout(() => setAdded(false), 1800);
   };
 
-  const createAiPreview = async () => {
-    setAiLoading(true);
-    setAiError("");
-    try {
-      const result = await base44.functions.invoke("generatePreview", {
-        productName: product.name,
-        name: name.trim(),
-        color,
-        font,
-        sticker: STICKERS.find((item) => item.id === sticker)?.label || "Không sticker",
-        engravingType: engravingType === "raised" ? "khắc nổi" : "khắc chìm",
-      });
-      if (!result.data?.image) throw new Error("AI không trả về được ảnh demo.");
-      setAiPreview(result.data.image);
-    } catch (error) {
-      setAiError(error.message || "Không tạo được demo AI.");
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
   const colorHex = (c) => {
     const map = { Mint: "#00FFD1", Lilac: "#BB86FC", Trắng: "#F8F9FA", Đen: "#1A1A1C", Hồng: "#FF8FBC" };
     return map[c] || "#00FFD1";
@@ -123,13 +100,11 @@ export default function ProductDetail() {
         {/* Image — stationary, sticky */}
         <div className="md:sticky md:top-20 md:self-start">
           <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-secondary">
-            {aiPreview ? (
-              <img src={aiPreview} alt="Bản demo AI" className="h-full w-full object-cover" />
-            ) : imageFor(product) && (
+            {imageFor(product) && (
               <img src={imageFor(product)} alt={product.name} className="h-full w-full object-cover" />
             )}
             {/* Live engraving preview overlay */}
-            {product.customizable && (name.trim() || message || sticker !== "none") && (
+            {product.customizable && demoVisible && (name.trim() || message || sticker !== "none") && (
               <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
                 <div className="inline-block max-w-[90%] rounded-lg bg-background/80 backdrop-blur px-4 py-2" style={{ color: colorHex(color) }}>
                   {sticker !== "none" && (
@@ -171,15 +146,13 @@ export default function ProductDetail() {
           <div className="rounded-xl border border-primary/25 bg-primary/5 p-3">
             <button
               type="button"
-              onClick={createAiPreview}
-              disabled={aiLoading}
+              onClick={() => setDemoVisible(true)}
               className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:brightness-105 disabled:opacity-60"
             >
-              {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              {aiLoading ? "AI đang tạo demo..." : "Tạo bản demo bằng AI"}
+              <Sparkles className="h-4 w-4" />
+              {demoVisible ? "Cập nhật bản demo" : "Xem bản demo"}
             </button>
-            <p className="mt-2 text-center text-xs text-muted-foreground">AI dựng mockup theo tên, sticker và kiểu khắc bạn chọn.</p>
-            {aiError && <p className="mt-2 text-xs text-destructive">{aiError}</p>}
+            <p className="mt-2 text-center text-xs text-muted-foreground">Demo miễn phí chạy ngay trên trình duyệt, không cần AI hay billing.</p>
           </div>
 
           <div className="text-3xl font-bold text-primary">{formatVND(product.base_price)}</div>

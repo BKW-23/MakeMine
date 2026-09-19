@@ -30,14 +30,8 @@ file đó.
 Các JSON trong thư mục này chỉ là payload test; không được dùng làm dữ liệu
 production nếu chưa kiểm tra và chuẩn hóa.
 
-## Demo mockup bằng AI
+## Demo mockup miễn phí
 
-Trang chi tiết sản phẩm có nút `Tạo bản demo bằng AI`. Chức năng này gọi
-Gemini từ Vercel Function và cần biến môi trường server:
-
-```text
-GEMINI_API_KEY=YOUR_GEMINI_KEY
-```
-
-Không thêm khóa này vào frontend hoặc commit vào GitHub. Nếu chưa cấu hình,
-nút demo sẽ báo rằng AI preview chưa được bật.
+Trang chi tiết sản phẩm có nút `Xem bản demo`. Demo được ghép trực tiếp trên
+trình duyệt từ ảnh sản phẩm, tên, sticker và kiểu khắc đã chọn. Chức năng này
+không gọi API tạo ảnh và không cần billing.
