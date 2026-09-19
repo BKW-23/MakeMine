@@ -99,9 +99,11 @@ export default function ProductDetail() {
               <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
                 <div className="inline-block max-w-[90%] rounded-lg bg-background/80 backdrop-blur px-4 py-2" style={{ color: colorHex(color) }}>
                   {sticker !== "none" && (
-                    <span className="mr-2 text-xl" aria-label="Sticker">
-                      {STICKERS.find((item) => item.id === sticker)?.emoji}
-                    </span>
+                    <img
+                      src={STICKERS.find((item) => item.id === sticker)?.image}
+                      alt={STICKERS.find((item) => item.id === sticker)?.label || "Sticker"}
+                      className="mr-2 inline-block h-9 w-9 rounded object-cover align-middle"
+                    />
                   )}
                   {name.trim() && (
                     <span
@@ -206,7 +208,12 @@ export default function ProductDetail() {
                         onClick={() => setSticker(item.id)}
                         className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${sticker === item.id ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"}`}
                       >
-                        <span className="text-lg">{item.emoji}</span>{item.label}
+                        {item.image ? (
+                          <img src={item.image} alt="" className="h-10 w-10 shrink-0 rounded object-cover" />
+                        ) : (
+                          <span className="grid h-10 w-10 shrink-0 place-items-center text-lg">{item.emoji}</span>
+                        )}
+                        <span>{item.label}</span>
                       </button>
                     ))}
                   </div>
