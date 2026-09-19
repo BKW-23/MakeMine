@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-export default function ModelPreview({ src, alt }) {
+export default function ModelPreview({ src, alt, layers = [] }) {
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -37,6 +37,9 @@ export default function ModelPreview({ src, alt }) {
 
     let frameId;
     let model;
+    let modelSize = new THREE.Vector3(1, 1, 1);
+    let renderedLayersKey = "";
+    const stickerGroup = new THREE.Group();
     const resize = () => {
       const width = container.clientWidth || 1;
       const height = container.clientHeight || 1;
@@ -61,9 +64,12 @@ export default function ModelPreview({ src, alt }) {
         const box = new THREE.Box3().setFromObject(model);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
+        modelSize = size.clone();
         const maxSize = Math.max(size.x, size.y, size.z) || 1;
         model.position.sub(center);
         model.scale.setScalar(2.1 / maxSize);
+        model.add(stickerGroup);
+        renderedLayersKey = "";
         scene.add(model);
       },
       undefined,
@@ -73,6 +79,25 @@ export default function ModelPreview({ src, alt }) {
     const animate = () => {
       frameId = requestAnimationFrame(animate);
       controls.update();
+      const layersKey = layers.map((layer) => `${layer.id}:${layer.x}:${layer.y}:${layer.scale}:${layer.opacity}`).join("|");
+      if (layersKey !== renderedLayersKey) {
+        renderedLayersKey = layersKey;
+        stickerGroup.clear();
+        layers.forEach((layer) => {
+          const image = layer.sticker.icon || layer.sticker.image;
+          const texture = new THREE.TextureLoader().load(image);
+          const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthTest: false, side: THREE.DoubleSide });
+          const mesh = new THREE.Mesh(new THREE.PlaneGeometry(modelSize.x * 0.12 * layer.scale, modelSize.y * 0.12 * layer.scale), material);
+          mesh.position.set(
+            ((layer.x - 50) / 50) * modelSize.x * 0.42,
+            ((50 - layer.y) / 50) * modelSize.y * 0.42,
+            modelSize.z * 0.55,
+          );
+          mesh.renderOrder = 10;
+          mesh.material.opacity = layer.opacity / 100;
+          stickerGroup.add(mesh);
+        });
+      }
       renderer.render(scene, camera);
     };
     animate();
@@ -93,7 +118,7 @@ export default function ModelPreview({ src, alt }) {
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [src]);
+  }, [src, layers]);
 
   return <div ref={containerRef} role="img" aria-label={alt} className="absolute inset-0 h-full w-full" />;
 }

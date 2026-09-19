@@ -37,6 +37,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
   const [scale, setScale] = useState(1);
 
   const selected = layers.find((layer) => layer.id === selectedId);
+  const isModelProduct = product.slug === "guong-cam-tay-lap-lanh";
 
   const addSticker = (sticker) => {
     const layer = {
@@ -157,9 +158,9 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
 
         <main className="checkerboard-bg relative flex min-w-0 flex-1 items-center justify-center overflow-hidden p-5" onPointerDown={() => setSelectedId(null)}>
           <div className="relative aspect-square w-full max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl" onPointerDown={(event) => event.stopPropagation()}>
-            {product.slug === "guong-cam-tay-lap-lanh" ? (
+            {isModelProduct ? (
               <div className="absolute inset-0 bg-gradient-to-br from-pink-100 via-white to-purple-100">
-                <ModelPreview src="/models/guong-cam-tay-lap-lanh.glb" alt={product.name} />
+                <ModelPreview src="/models/guong-cam-tay-lap-lanh.glb" alt={product.name} layers={layers} />
               </div>
             ) : (
               <img src={product.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
@@ -170,7 +171,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
                 {message && <div className="mt-1 text-xs italic text-slate-700">“{message}”</div>}
               </div>
             </div>
-            {layers.map((layer) => {
+            {!isModelProduct && layers.map((layer) => {
               const selectedLayer = layer.id === selectedId;
               return (
                 <button
@@ -189,11 +190,6 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
                       filter: tint !== "original" ? `sepia(1) saturate(3) hue-rotate(${tint === "blue" ? "145deg" : tint === "pink" ? "290deg" : "0deg"})` : "none",
                     }}
                   />
-                  {layer.sticker.id === "bear" && (
-                    <div className="pointer-events-none absolute inset-0">
-                      <ModelPreview src="/models/sticker-bear.glb" alt={layer.sticker.label} />
-                    </div>
-                  )}
                   {selectedLayer && (
                     <>
                       <span className="pointer-events-none absolute -inset-1 rounded border-2 border-blue-500" />
