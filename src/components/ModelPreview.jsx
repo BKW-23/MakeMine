@@ -6,6 +6,14 @@ import { DecalGeometry } from "three/examples/jsm/geometries/DecalGeometry.js";
 
 export default function ModelPreview({ src, alt, layers = [], selectedId, onSelectLayer, onMoveLayer }) {
   const containerRef = useRef(null);
+  const layersRef = useRef(layers);
+  const selectedIdRef = useRef(selectedId);
+  const onSelectLayerRef = useRef(onSelectLayer);
+  const onMoveLayerRef = useRef(onMoveLayer);
+  layersRef.current = layers;
+  selectedIdRef.current = selectedId;
+  onSelectLayerRef.current = onSelectLayer;
+  onMoveLayerRef.current = onMoveLayer;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -85,7 +93,8 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     const animate = () => {
       frameId = requestAnimationFrame(animate);
       controls.update();
-      const layersKey = layers.map((layer) => `${layer.id}:${layer.x}:${layer.y}:${layer.scale}:${layer.opacity}:${JSON.stringify(layer.surface || null)}`).join("|");
+      const currentLayers = layersRef.current;
+      const layersKey = `${selectedIdRef.current}|${currentLayers.map((layer) => `${layer.id}:${layer.x}:${layer.y}:${layer.scale}:${layer.opacity}:${JSON.stringify(layer.surface || null)}`).join("|")}`;
       if (layersKey !== renderedLayersKey) {
         renderedLayersKey = layersKey;
         while (stickerGroup.children.length) {
@@ -94,7 +103,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
           child.material?.map?.dispose();
           child.material?.dispose();
         }
-        layers.forEach((layer) => {
+        currentLayers.forEach((layer) => {
           if (!modelMeshes[0]) return;
           const image = layer.sticker.icon || layer.sticker.image;
           const position = layer.surface?.position
@@ -129,6 +138,21 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
             mesh.userData.layerId = layer.id;
             mesh.renderOrder = 10;
             stickerGroup.add(mesh);
+            if (layer.id === selectedIdRef.current) {
+              const outlineMaterial = new THREE.LineBasicMaterial({ color: 0x3b82f6, depthTest: false });
+              const outline = new THREE.LineSegments(
+                new THREE.EdgesGeometry(new THREE.PlaneGeometry(
+                  modelSize.x * 0.16 * layer.scale * aspect,
+                  modelSize.x * 0.16 * layer.scale,
+                )),
+                outlineMaterial,
+              );
+              outline.position.copy(position);
+              outline.rotation.copy(orientation);
+              outline.renderOrder = 20;
+              outline.userData.layerId = layer.id;
+              stickerGroup.add(outline);
+            }
           });
         });
       }
@@ -147,17 +171,16 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       const hitDecal = decals[0]?.object;
       if (hitDecal?.userData.layerId) {
         draggingLayer = hitDecal.userData.layerId;
-        onSelectLayer?.(draggingLayer);
+        onSelectLayerRef.current?.(draggingLayer);
         controls.enabled = false;
         return;
       }
       const hitModel = raycaster.intersectObjects(modelMeshes, false)[0];
       if (!hitModel) {
-        onSelectLayer?.(null);
+        onSelectLayerRef.current?.(null);
         return;
       }
-      draggingLayer = selectedId || null;
-      if (draggingLayer) controls.enabled = false;
+      onSelectLayerRef.current?.(null);
     };
     const onPointerMove = (event) => {
       if (!draggingLayer) return;
@@ -166,7 +189,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       if (!hit) return;
       const position = model.worldToLocal(hit.point.clone());
       const normal = model.worldToLocal(hit.point.clone().add(hit.face.normal)).sub(position).normalize();
-      onMoveLayer?.(draggingLayer, { position: position.toArray(), normal: normal.toArray() });
+      onMoveLayerRef.current?.(draggingLayer, { position: position.toArray(), normal: normal.toArray() });
     };
     const onPointerUp = () => {
       draggingLayer = null;
@@ -196,7 +219,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [src, layers, selectedId, onSelectLayer, onMoveLayer]);
+  }, [src]);
 
   return <div ref={containerRef} role="img" aria-label={alt} className="absolute inset-0 h-full w-full" />;
 }
