@@ -353,7 +353,6 @@ export default function ModelPreview({
               new DecalGeometry(modelMeshes[0], position, orientation, new THREE.Vector3(textWidth, textHeight, Math.max(modelSize.z * 0.04, 0.001))),
               material
             );
-            textMesh.userData.isTextPick = true;
             textMesh.renderOrder = 12;
             stickerGroup.add(textMesh);
 
@@ -363,7 +362,7 @@ export default function ModelPreview({
             );
             pickMesh.position.copy(position);
             pickMesh.rotation.copy(orientation);
-            pickMesh.userData.isTextPick = true;
+            pickMesh.userData.isTextPickArea = true;
             stickerGroup.add(pickMesh);
             if (currentText.textSelected) {
               const outline = new THREE.LineSegments(
@@ -372,7 +371,6 @@ export default function ModelPreview({
               );
               outline.position.copy(position);
               outline.rotation.copy(orientation);
-              outline.userData.isTextPick = true;
               outline.renderOrder = 20;
               stickerGroup.add(outline);
             }
@@ -416,7 +414,7 @@ export default function ModelPreview({
         .intersectObjects(stickerGroup.children, false)
         .filter((intersection) => intersection.object.userData.isStickerPick);
       const textHit = raycaster.intersectObjects(stickerGroup.children, false)
-        .find((intersection) => intersection.object.userData.isTextPick);
+        .find((intersection) => intersection.object.userData.isTextPickArea);
       if (textHit) {
         onSelectTextRef.current?.(true);
         controls.enabled = false;
