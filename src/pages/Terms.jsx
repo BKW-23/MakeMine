@@ -1,10 +1,19 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { FileText } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, FileText } from "lucide-react";
 
 export default function Terms() {
+  const navigate = useNavigate();
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+      <button
+        type="button"
+        onClick={() => (window.history.length > 1 ? navigate(-1) : navigate("/"))}
+        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
+      >
+        <ArrowLeft className="h-4 w-4" /> Quay lại
+      </button>
       <div className="mb-8 flex items-center gap-3">
         <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground">
           <FileText className="h-6 w-6" />
