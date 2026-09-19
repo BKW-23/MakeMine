@@ -224,7 +224,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
             })}
           </div>
           <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-slate-700 bg-slate-950/90 px-4 py-2 text-xs text-slate-300 shadow-xl">
-            Kéo thả sticker trực tiếp để sắp xếp mẫu
+            Bấm vào sticker để chọn · Kéo sticker để di chuyển · Bấm ra ngoài để bỏ chọn
           </div>
         </main>
 
