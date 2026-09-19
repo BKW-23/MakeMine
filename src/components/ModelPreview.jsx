@@ -85,17 +85,24 @@ export default function ModelPreview({ src, alt, layers = [] }) {
         stickerGroup.clear();
         layers.forEach((layer) => {
           const image = layer.sticker.icon || layer.sticker.image;
-          const texture = new THREE.TextureLoader().load(image);
-          const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthTest: false, side: THREE.DoubleSide });
-          const mesh = new THREE.Mesh(new THREE.PlaneGeometry(modelSize.x * 0.12 * layer.scale, modelSize.y * 0.12 * layer.scale), material);
-          mesh.position.set(
+          const texture = new THREE.Texture();
+          const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, depthWrite: false });
+          const sprite = new THREE.Sprite(material);
+          sprite.position.set(
             ((layer.x - 50) / 50) * modelSize.x * 0.42,
             ((50 - layer.y) / 50) * modelSize.y * 0.42,
-            modelSize.z * 0.55,
+            modelSize.z * 0.6,
           );
-          mesh.renderOrder = 10;
-          mesh.material.opacity = layer.opacity / 100;
-          stickerGroup.add(mesh);
+          sprite.renderOrder = 10;
+          sprite.material.opacity = layer.opacity / 100;
+          sprite.scale.set(modelSize.x * 0.16 * layer.scale, modelSize.y * 0.16 * layer.scale, 1);
+          stickerGroup.add(sprite);
+          new THREE.TextureLoader().load(image, (loadedTexture) => {
+            texture.image = loadedTexture.image;
+            texture.needsUpdate = true;
+            const aspect = loadedTexture.image.width / loadedTexture.image.height || 1;
+            sprite.scale.setX(sprite.scale.y * aspect);
+          });
         });
       }
       renderer.render(scene, camera);
