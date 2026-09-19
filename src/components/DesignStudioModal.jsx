@@ -21,6 +21,11 @@ const CROP_POSITIONS = {
   sparkle: "50% 42%",
 };
 
+const selectLayer = (layerId) => {
+  setSelectedId(layerId);
+  if (layerId) setMobilePanel("controls");
+};
+
 const stickerCropStyle = (sticker) => ({
   backgroundImage: `url(${sticker.icon || sticker.image})`,
   backgroundPosition: CROP_POSITIONS[sticker.id] || "50% 50%",
@@ -38,6 +43,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
   const [rotation, setRotation] = useState(0);
   const [showInstructions, setShowInstructions] = useState(false);
   const [resetModelView, setResetModelView] = useState(null);
+  const [mobilePanel, setMobilePanel] = useState("controls");
 
   const selected = layers.find((layer) => layer.id === selectedId);
   const isModelProduct = product.slug === "guong-cam-tay-lap-lanh";
@@ -54,6 +60,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
     };
     setLayers((current) => [...current, layer]);
     setSelectedId(layer.id);
+    setMobilePanel("controls");
     setTint("original");
   };
 
@@ -76,6 +83,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
     setOpacity(100);
     setScale(1);
     setRotation(0);
+    setMobilePanel(null);
   };
 
   const saveDesign = () => {
@@ -152,8 +160,16 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
-        <aside className="flex max-h-36 w-full shrink-0 flex-col border-b border-slate-800 bg-slate-950 p-3 lg:max-h-none lg:w-72 lg:border-b-0 lg:border-r">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
+        <div className="flex shrink-0 items-center gap-2 border-b border-slate-800 bg-slate-950 p-2 lg:hidden">
+          <button type="button" onClick={() => setMobilePanel("stickers")} className="flex-1 rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-300 hover:border-pink-400 hover:text-pink-300">
+            <Sparkles className="mr-1.5 inline h-3.5 w-3.5" /> Kho sticker
+          </button>
+          <button type="button" onClick={() => setMobilePanel("controls")} className="flex-1 rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-300 hover:border-pink-400 hover:text-pink-300">
+            <SlidersHorizontal className="mr-1.5 inline h-3.5 w-3.5" /> Tùy chỉnh
+          </button>
+        </div>
+        <aside className={`z-30 flex max-h-36 w-full shrink-0 flex-col border-b border-slate-800 bg-slate-950 p-3 lg:relative lg:z-auto lg:max-h-none lg:w-72 lg:border-b-0 lg:border-r ${mobilePanel === "stickers" ? "absolute left-2 right-2 top-14 max-h-[70vh] w-auto rounded-xl border lg:static lg:w-72" : "hidden lg:flex"}`}>
           <div className="mb-2 flex items-center gap-2 border-b border-pink-500 pb-2 text-sm font-semibold text-pink-300 lg:mb-3 lg:pb-3">
             <Sparkles className="h-4 w-4" /> Kho sticker
           </div>
@@ -168,7 +184,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
           </div>
         </aside>
 
-        <main className="checkerboard-bg relative flex min-h-[min(45vh,460px)] min-w-0 flex-none items-center justify-center overflow-hidden p-2 sm:min-h-[min(54vh,560px)] sm:p-5 lg:min-h-0 lg:flex-1" onPointerDown={() => setSelectedId(null)}>
+        <main className="checkerboard-bg relative flex min-h-[min(45vh,460px)] min-w-0 flex-1 items-center justify-center overflow-hidden p-2 sm:min-h-[min(54vh,560px)] sm:p-5 lg:min-h-0" onPointerDown={() => { setSelectedId(null); setMobilePanel(null); }}>
           <div className="relative aspect-square w-full max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl">
             {isModelProduct ? (
               <div className="absolute inset-0 bg-gradient-to-br from-pink-100 via-white to-purple-100">
@@ -177,7 +193,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
                   alt={product.name}
                   layers={layers}
                   selectedId={selectedId}
-                  onSelectLayer={setSelectedId}
+                  onSelectLayer={selectLayer}
                   onMoveLayer={updateSurfaceLayer}
                   onResetView={setResetModelView}
                 />
@@ -197,7 +213,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
                 <button
                   key={layer.id}
                   type="button"
-                  onPointerDown={(event) => { event.stopPropagation(); setSelectedId(layer.id); handleDrag(event, layer); }}
+                  onPointerDown={(event) => { event.stopPropagation(); selectLayer(layer.id); handleDrag(event, layer); }}
                   className={`absolute h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-xl p-1 ${selectedLayer ? "ring-2 ring-pink-400 ring-offset-2 ring-offset-transparent" : ""}`}
                   style={{ left: `${layer.x}%`, top: `${layer.y}%`, opacity: layer.opacity / 100, transform: `translate(-50%, -50%) scale(${layer.scale})` }}
                 >
@@ -262,11 +278,14 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
           )}
         </main>
 
-        <aside className="flex max-h-[38vh] w-full shrink-0 flex-col overflow-y-auto border-t border-slate-800 bg-slate-950 lg:max-h-none lg:w-72 lg:border-l lg:border-t-0">
-          <div className="flex items-center gap-2 border-b border-slate-800 p-4 text-xs font-semibold uppercase tracking-wider text-slate-300">
-            <SlidersHorizontal className="h-4 w-4 text-pink-400" /> Tùy chỉnh sticker
+        <aside className={`z-30 flex min-h-0 w-full shrink-0 flex-col overflow-y-auto border-t border-slate-800 bg-slate-950 lg:relative lg:z-auto lg:max-h-none lg:w-72 lg:border-l lg:border-t-0 ${mobilePanel === "controls" ? "max-h-[42vh] lg:static lg:w-72" : "hidden lg:flex"}`}>
+          <div className="flex items-center justify-between gap-2 border-b border-slate-800 p-3 text-xs font-semibold uppercase tracking-wider text-slate-300 sm:p-4">
+            <span className="inline-flex items-center gap-2"><SlidersHorizontal className="h-4 w-4 text-pink-400" /> Tùy chỉnh sticker</span>
+            <button type="button" onClick={() => setMobilePanel(null)} className="rounded-md px-2 py-1 text-[10px] normal-case tracking-normal text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden">
+              Ẩn
+            </button>
           </div>
-          <div className="space-y-5 border-b border-slate-800 p-4">
+          <div className="shrink-0 space-y-5 border-b border-slate-800 p-4">
             <div>
               <p className="mb-2 text-[11px] text-slate-400">Màu hiệu ứng / ánh kim</p>
               <div className="grid grid-cols-3 gap-2">
@@ -287,10 +306,10 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
               <button type="button" onClick={() => { setLayers((current) => current.filter((layer) => layer.id !== selectedId)); setSelectedId(null); }} className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2 text-[11px] text-rose-300 hover:bg-rose-500/20"><Trash2 className="mx-auto mb-1 h-4 w-4" />Xóa hình</button>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="min-h-[96px] min-w-0 border-t border-slate-800 p-4">
             <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-300"><span>Danh sách layer</span><span className="text-slate-500">{layers.length} hình</span></div>
             {layers.map((layer) => (
-              <button key={layer.id} type="button" onClick={() => setSelectedId(layer.id)} className={`mb-1 flex w-full items-center gap-2 rounded-lg p-2 text-left text-xs ${layer.id === selectedId ? "bg-pink-500/15 text-pink-200" : "text-slate-400 hover:bg-slate-900"}`}>
+              <button key={layer.id} type="button" onClick={() => selectLayer(layer.id)} className={`mb-1 flex w-full items-center gap-2 rounded-lg p-2 text-left text-xs ${layer.id === selectedId ? "bg-pink-500/15 text-pink-200" : "text-slate-400 hover:bg-slate-900"}`}>
                 <span className="h-8 w-8 shrink-0 rounded bg-slate-800" style={stickerCropStyle(layer.sticker)} />
                 {layer.sticker.label}
               </button>
