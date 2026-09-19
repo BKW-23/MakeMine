@@ -18,6 +18,8 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
+import Terms from '@/pages/Terms';
+import Guide from '@/pages/Guide';
 import ProtectedRoute from '@/components/ProtectedRoute';
 // Add page imports here
 
@@ -51,6 +53,8 @@ const AuthenticatedApp = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/dieu-khoan" element={<Terms />} />
+        <Route path="/huong-dan" element={<Guide />} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </CartProvider>

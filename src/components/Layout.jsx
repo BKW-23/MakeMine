@@ -184,6 +184,8 @@ export default function Layout() {
               <li><Link to="/san-pham?category=gương" className="hover:text-primary">Gương khắc tên</Link></li>
               <li><Link to="/san-pham?category=kẹp tóc" className="hover:text-primary">Kẹp tóc</Link></li>
               <li><Link to="/don-hang" className="hover:text-primary">Theo dõi đơn hàng</Link></li>
+              <li><Link to="/huong-dan" className="hover:text-primary">Hướng dẫn mua hàng</Link></li>
+              <li><Link to="/dieu-khoan" className="hover:text-primary">Điều khoản sử dụng</Link></li>
             </ul>
           </div>
           <div>

@@ -10,6 +10,7 @@ export default function Cart() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", phone: "", email: "", address: "" });
   const [confirmed, setConfirmed] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [error, setError] = useState("");
@@ -22,6 +23,10 @@ export default function Cart() {
     }
     if (!confirmed) {
       setError("Vui lòng xác nhận đã xem trước mẫu khắc.");
+      return;
+    }
+    if (!termsAccepted) {
+      setError("Vui lòng đọc và đồng ý với điều khoản sử dụng.");
       return;
     }
     setPlacing(true);
@@ -139,6 +144,10 @@ export default function Cart() {
             <label className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${confirmed ? "border-primary bg-primary/5" : "border-dashed border-border pulse-ring"}`}>
               <input type="checkbox" checked={confirmed} onChange={(e) => { setConfirmed(e.target.checked); setError(""); }} className="mt-0.5 h-4 w-4 accent-[hsl(var(--primary))]" />
               <span className="text-xs text-muted-foreground">Tôi đã xem trước mẫu khắc tên và xác nhận thông tin cá nhân hoá chính xác.</span>
+            </label>
+            <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
+              <input type="checkbox" checked={termsAccepted} onChange={(e) => { setTermsAccepted(e.target.checked); setError(""); }} className="mt-0.5 h-4 w-4 accent-[hsl(var(--primary))]" />
+              <span className="text-xs text-muted-foreground">Tôi đồng ý với <Link to="/dieu-khoan" className="font-medium text-primary hover:underline">Điều khoản sử dụng</Link> và hướng dẫn mua hàng.</span>
             </label>
 
             {error && <div className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">{error}</div>}
