@@ -311,16 +311,24 @@ export default function ModelPreview({
 
         if (currentText.text) {
           const canvas = document.createElement("canvas");
-          canvas.width = 1024;
-          canvas.height = currentText.includeMessage && currentText.message ? 360 : 260;
-          const context = canvas.getContext("2d");
+          let context = canvas.getContext("2d");
+          const hasMessage = currentText.includeMessage && currentText.message;
+          const textFont = "bold 112px sans-serif";
+          const messageFont = "italic 42px sans-serif";
+          context.font = textFont;
+          const nameWidth = context.measureText(currentText.text).width;
+          context.font = messageFont;
+          const messageWidth = hasMessage ? context.measureText(`“${currentText.message}”`).width : 0;
+          canvas.width = Math.ceil(Math.max(nameWidth, messageWidth) + 96);
+          canvas.height = hasMessage ? 360 : 260;
+          context = canvas.getContext("2d");
           context.fillStyle = currentText.textColor || "#000000";
           context.textAlign = "center";
           context.textBaseline = "middle";
-          context.font = "bold 112px sans-serif";
+          context.font = textFont;
           context.fillText(currentText.text, canvas.width / 2, 130);
-          if (currentText.includeMessage && currentText.message) {
-            context.font = "italic 42px sans-serif";
+          if (hasMessage) {
+            context.font = messageFont;
             context.fillText(`“${currentText.message}”`, canvas.width / 2, 245);
           }
           textTexture = new THREE.CanvasTexture(canvas);
@@ -340,8 +348,8 @@ export default function ModelPreview({
               )
             );
             const orientation = new THREE.Euler().setFromQuaternion(orientationQuaternion);
-            const textWidth = modelSize.x * 0.62 * (currentText.textScale || 1);
             const textHeight = modelSize.x * 0.22 * (currentText.textScale || 1);
+            const textWidth = textHeight * (canvas.width / canvas.height);
             const material = new THREE.MeshBasicMaterial({
               map: textTexture,
               transparent: true,
