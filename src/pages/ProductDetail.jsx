@@ -1,10 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Minus, Plus, ShoppingBag, Check, Sparkles, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useCart } from "@/lib/cart";
 import { imageFor, formatVND } from "@/lib/productImages";
-import GreetingGenerator from "@/components/GreetingGenerator";
 import { STICKERS } from "@/lib/stickers";
 import DesignStudioModal from "@/components/DesignStudioModal";
 
@@ -17,11 +16,6 @@ const ENGRAVING_COLORS = [
 ];
 const DEFAULT_COLORS = ENGRAVING_COLORS.map((item) => item.id);
 const DEFAULT_FONTS = ["Sans", "Script", "Mono"];
-const ENGRAVING_TYPES = [
-  { id: "raised", label: "Khắc nổi" },
-  { id: "engraved", label: "Khắc chìm" },
-];
-
 export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -53,9 +47,6 @@ export default function ProductDetail() {
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [slug]);
-
-  const colors = useMemo(() => DEFAULT_COLORS, []);
-  const fonts = useMemo(() => (product?.fonts?.length ? product.fonts : DEFAULT_FONTS), [product]);
 
   if (loading) {
     return <div className="mx-auto max-w-7xl px-4 py-20"><div className="h-96 rounded-2xl shimmer border border-border" /></div>;
@@ -161,54 +152,9 @@ export default function ProductDetail() {
           <div className="text-3xl font-bold text-primary">{formatVND(product.base_price)}</div>
 
           {product.customizable && (
-            <div className="space-y-5 rounded-2xl border border-border bg-card p-5">
-              <div className="text-sm font-semibold flex items-center gap-2">
-                <span className="grid h-6 w-6 place-items-center rounded bg-primary/15 text-primary text-xs font-mono">01</span>
-                Tùy chỉnh khắc tên
-              </div>
-
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <div className="mb-3 text-sm font-semibold">Sticker đã chọn</div>
               <div>
-                <label className="text-xs font-medium text-muted-foreground font-mono">ENGRAVE NAME</label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value.slice(0, 20))}
-                  placeholder="Nhập tên cần khắc (tối đa 20 ký tự)"
-                  className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 min-h-12"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-muted-foreground font-mono">MÀU KHẮC CHỮ</label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {colors.map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => setColor(c)}
-                      className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-colors ${color === c ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"}`}
-                    >
-                      <span className="h-4 w-4 rounded-full border border-black/10 shadow-sm" style={{ background: colorHex(c) }} />
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-muted-foreground font-mono">FONT</label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {fonts.map((f) => (
-                    <button
-                      key={f}
-                      onClick={() => setFont(f)}
-                      className={`rounded-lg border px-4 py-2 text-sm transition-colors ${font === f ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"}`}
-                      style={{ fontFamily: f === "Script" ? "'Brush Script MT', cursive" : f === "Mono" ? "ui-monospace, monospace" : "Inter, sans-serif" }}
-                    >
-                      {f}
-                    </button>
-                  ))}
-                </div>
-
-                <div>
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-medium text-muted-foreground font-mono">STICKER</label>
                     <span className="text-[11px] text-muted-foreground">Bấm vào ảnh để xem lớn</span>
@@ -238,26 +184,7 @@ export default function ProductDetail() {
                       </button>
                     ))}
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground font-mono">ENGRAVING STYLE</label>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {ENGRAVING_TYPES.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => setEngravingType(item.id)}
-                        className={`rounded-lg border px-4 py-2 text-sm transition-colors ${engravingType === item.id ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"}`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
-
-              <GreetingGenerator productName={product.name} onConfirm={setMessage} />
             </div>
           )}
 
@@ -310,8 +237,17 @@ export default function ProductDetail() {
           product={product}
           name={name.trim()}
           message={message}
-          colorHex={colorHex(color)}
+          color={color}
+          font={font}
+          engravingType={engravingType}
           initialLayers={savedDesign}
+          onTextChange={(changes) => {
+            if (changes.name !== undefined) setName(changes.name);
+            if (changes.message !== undefined) setMessage(changes.message);
+            if (changes.color !== undefined) setColor(changes.color);
+            if (changes.font !== undefined) setFont(changes.font);
+            if (changes.engravingType !== undefined) setEngravingType(changes.engravingType);
+          }}
           onSave={(layers, selectedStickerId) => {
             setSavedDesign(layers);
             setSticker(selectedStickerId || "none");

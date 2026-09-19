@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Copy, HelpCircle, RotateCcw, SlidersHorizontal, Sparkles, Trash2, X } from "lucide-react";
 import { STICKERS } from "@/lib/stickers";
 import ModelPreview from "@/components/ModelPreview";
+import GreetingGenerator from "@/components/GreetingGenerator";
 
 const TINTS = [
   { id: "original", label: "Gốc", hex: null },
@@ -10,6 +11,18 @@ const TINTS = [
   { id: "gold", label: "Vàng nắng", hex: "#facc15" },
   { id: "pink", label: "Hồng kẹo", hex: "#f472b6" },
   { id: "blue", label: "Xanh mây", hex: "#7dd3fc" },
+];
+
+const ENGRAVING_COLORS = [
+  { id: "Hồng đào", hex: "#E887A5" },
+  { id: "Tím lavender", hex: "#9D83C7" },
+  { id: "Trắng ngọc trai", hex: "#F4F0E8" },
+  { id: "Xanh bạc hà", hex: "#83C9B1" },
+  { id: "Đen huyền", hex: "#302B35" },
+];
+const ENGRAVING_TYPES = [
+  { id: "raised", label: "Khắc nổi" },
+  { id: "engraved", label: "Khắc chìm" },
 ];
 
 const CROP_POSITIONS = {
@@ -28,7 +41,18 @@ const stickerCropStyle = (sticker) => ({
   backgroundSize: sticker.icon ? "contain" : "320%",
 });
 
-export default function DesignStudioModal({ product, name, message, colorHex, initialLayers = [], onClose, onSave }) {
+export default function DesignStudioModal({
+  product,
+  name,
+  message,
+  color,
+  font,
+  engravingType,
+  initialLayers = [],
+  onClose,
+  onSave,
+  onTextChange,
+}) {
   const availableStickers = useMemo(() => STICKERS.filter((item) => item.image), []);
   const [layers, setLayers] = useState(initialLayers);
   const [selectedId, setSelectedId] = useState(initialLayers[initialLayers.length - 1]?.id || null);
@@ -84,11 +108,18 @@ export default function DesignStudioModal({ product, name, message, colorHex, in
     setRotation(0);
     setMobilePanel(null);
     resetModelView?.();
+    onTextChange?.({
+      name: "",
+      message: "",
+      color: ENGRAVING_COLORS[0].id,
+      font: product.fonts?.[0] || "Sans",
+      engravingType: "raised",
+    });
   };
 
   const closeStudio = () => {
     const selectedLayer = layers.find((layer) => layer.id === selectedId) || layers[layers.length - 1];
-    onSave?.(layers, selectedLayer?.sticker?.id || "none");
+    onSave?.(layers, selectedLayer?.sticker?.id || "none", { name, message, color, font, engravingType });
     onClose();
   };
 
@@ -300,6 +331,59 @@ export default function DesignStudioModal({ product, name, message, colorHex, in
             </button>
           </div>
           <div className="shrink-0 space-y-5 border-b border-slate-800 p-4">
+            <div className="space-y-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-pink-300">Nội dung khắc</div>
+              <input
+                value={name}
+                onChange={(event) => onTextChange?.({ name: event.target.value.slice(0, 20) })}
+                placeholder="Tên cần khắc (tối đa 20 ký tự)"
+                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-pink-400"
+              />
+              <textarea
+                value={message}
+                onChange={(event) => onTextChange?.({ message: event.target.value.slice(0, 80) })}
+                placeholder="Lời nhắn (không bắt buộc)"
+                rows={2}
+                className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-pink-400"
+              />
+              <GreetingGenerator productName={product.name} onConfirm={(nextMessage) => onTextChange?.({ message: nextMessage })} />
+              <div className="flex flex-wrap gap-1.5">
+                {product.fonts?.length ? product.fonts.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => onTextChange?.({ font: item })}
+                    className={`rounded-lg border px-2.5 py-1.5 text-[11px] ${font === item ? "border-pink-400 bg-pink-500/10 text-pink-300" : "border-slate-700 text-slate-400 hover:border-pink-400"}`}
+                  >
+                    {item}
+                  </button>
+                )) : null}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {ENGRAVING_COLORS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    title={item.id}
+                    onClick={() => onTextChange?.({ color: item.id })}
+                    className={`h-6 w-6 rounded-full border-2 ${color === item.id ? "border-white ring-2 ring-pink-400" : "border-slate-700"}`}
+                    style={{ backgroundColor: item.hex }}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-1.5">
+                {ENGRAVING_TYPES.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => onTextChange?.({ engravingType: item.id })}
+                    className={`flex-1 rounded-lg border px-2 py-1.5 text-[11px] ${engravingType === item.id ? "border-pink-400 bg-pink-500/10 text-pink-300" : "border-slate-700 text-slate-400 hover:border-pink-400"}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div>
               <p className="mb-2 text-[11px] text-slate-400">Màu hiệu ứng / ánh kim</p>
               <div className="grid grid-cols-3 gap-2">
