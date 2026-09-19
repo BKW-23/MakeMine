@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { ShoppingBag, Menu, X } from "lucide-react";
+import { LogIn, LogOut, ShoppingBag, Menu, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import GiftAssistant from "@/components/GiftAssistant";
+import { useAuth } from "@/lib/AuthContext";
 
 const NAV = [
   { to: "/", label: "Trang chủ" },
@@ -13,8 +14,24 @@ const NAV = [
 
 export default function Layout() {
   const { count } = useCart();
+  const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (!accountRef.current?.contains(event.target)) setAccountOpen(false);
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  const metadata = user?.user_metadata || {};
+  const displayName = metadata.full_name || metadata.name || user?.email?.split("@")[0] || "Tài khoản";
+  const avatarUrl = metadata.avatar_url || metadata.picture || "";
+  const initials = displayName.slice(0, 1).toUpperCase();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -62,6 +79,57 @@ export default function Layout() {
                   </span>
                 )}
               </Link>
+              {isAuthenticated ? (
+                <div ref={accountRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setAccountOpen((value) => !value)}
+                    className="flex h-10 items-center gap-2 rounded-lg bg-secondary px-2 text-left hover:bg-primary/10 transition-colors"
+                    aria-expanded={accountOpen}
+                    aria-label="Tài khoản"
+                  >
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                        {initials}
+                      </span>
+                    )}
+                    <span className="hidden max-w-28 truncate text-xs font-semibold sm:block">{displayName}</span>
+                  </button>
+                  {accountOpen && (
+                    <div className="absolute right-0 top-12 z-50 w-64 rounded-xl border border-border bg-card p-3 shadow-lg">
+                      <div className="flex items-center gap-3 border-b border-border pb-3">
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
+                        ) : (
+                          <span className="grid h-10 w-10 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                            {initials}
+                          </span>
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold">{displayName}</p>
+                          <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={logout}
+                        className="mt-3 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      >
+                        <LogOut className="h-4 w-4" /> Đăng xuất
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  to="/login"
+                  className="hidden items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-sm font-semibold hover:bg-primary/10 sm:flex"
+                >
+                  <LogIn className="h-4 w-4" /> Đăng nhập
+                </Link>
+              )}
               <button
                 className="md:hidden grid h-10 w-10 place-items-center rounded-lg bg-secondary"
                 onClick={() => setOpen((v) => !v)}
