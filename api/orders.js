@@ -1,4 +1,4 @@
-import { json, supabase } from "./_supabase.js";
+import { getBearer, json, requireUser, supabase } from "./_supabase.js";
 
 const cleanText = (value, max) => String(value || "").trim().slice(0, max);
 
@@ -29,6 +29,10 @@ export default async function handler(req, res) {
     });
     const total = normalizedItems.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
     const orderCode = `MM${Date.now().toString(36).toUpperCase()}`;
+    let userId = null;
+    if (getBearer(req)) {
+      userId = (await requireUser(req)).id;
+    }
     const created = await supabase("orders", {
       method: "POST",
       headers: { Prefer: "return=representation" },
@@ -41,6 +45,7 @@ export default async function handler(req, res) {
         items: normalizedItems,
         total,
         preview_confirmed: Boolean(body.preview_confirmed),
+        user_id: userId,
       }),
     });
     json(res, 201, created[0]);

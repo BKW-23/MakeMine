@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { LogIn, LogOut, ShoppingBag, Menu, X } from "lucide-react";
+import { History, LogIn, LogOut, ShoppingBag, Menu, X } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import GiftAssistant from "@/components/GiftAssistant";
 import { useAuth } from "@/lib/AuthContext";
@@ -112,6 +112,13 @@ export default function Layout() {
                           <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
                         </div>
                       </div>
+                      <Link
+                        to="/don-hang"
+                        onClick={() => setAccountOpen(false)}
+                        className="mt-3 flex items-center gap-2 rounded-lg px-2 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      >
+                        <History className="h-4 w-4" /> Lịch sử đơn hàng
+                      </Link>
                       <button
                         type="button"
                         onClick={logout}

@@ -129,6 +129,9 @@ const orders = {
   list(..._args) {
     return apiRequest("/api/admin/orders");
   },
+  history() {
+    return apiRequest("/api/orders-history");
+  },
   update(id, payload) {
     return apiRequest(`/api/admin/orders/${encodeURIComponent(id)}`, {
       method: "PATCH",

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search, Package } from "lucide-react";
 import { formatVND } from "@/lib/productImages";
+import { useAuth } from "@/lib/AuthContext";
+import { base44 } from "@/api/base44Client";
 
 const STATUS = {
   pending: { label: "Chờ xác nhận", color: "text-amber-600 bg-amber-100/70" },
@@ -18,6 +20,8 @@ export default function OrderTracking() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const search = async (e) => {
     e?.preventDefault();
@@ -42,10 +46,23 @@ export default function OrderTracking() {
     // eslint-disable-next-line
   }, []);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    setHistoryLoading(true);
+    base44.entities.Order.history()
+      .then((data) => {
+        setOrders(data);
+      })
+      .catch(() => setOrders([]))
+      .finally(() => setHistoryLoading(false));
+  }, [isAuthenticated]);
+
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="font-display text-3xl font-bold mb-2">Theo dõi đơn hàng</h1>
-      <p className="text-sm text-muted-foreground mb-6">Nhập mã đơn hàng hoặc số điện thoại đã đặt.</p>
+      <p className="text-sm text-muted-foreground mb-6">
+        {isAuthenticated ? "Lịch sử đơn hàng của tài khoản và tra cứu đơn bằng mã hoặc số điện thoại." : "Nhập mã đơn hàng hoặc số điện thoại đã đặt."}
+      </p>
 
       <form onSubmit={search} className="flex gap-2 mb-8">
         <div className="relative flex-1">
@@ -59,6 +76,14 @@ export default function OrderTracking() {
         </div>
         <button type="submit" className="rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 min-h-12">Tra cứu</button>
       </form>
+
+      {isAuthenticated && historyLoading && <div className="mb-6 h-24 rounded-2xl shimmer border border-border" />}
+
+      {isAuthenticated && !historyLoading && !searched && orders.length === 0 && (
+        <div className="mb-6 rounded-2xl border border-dashed border-border p-8 text-center text-muted-foreground">
+          Bạn chưa có đơn hàng nào trong tài khoản.
+        </div>
+      )}
 
       {loading && <div className="h-40 rounded-2xl shimmer border border-border" />}
 
