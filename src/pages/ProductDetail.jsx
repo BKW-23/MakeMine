@@ -1,13 +1,20 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, ShoppingBag, Check, Sparkles } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingBag, Check, Sparkles, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useCart } from "@/lib/cart";
 import { imageFor, formatVND } from "@/lib/productImages";
 import GreetingGenerator from "@/components/GreetingGenerator";
 import { STICKERS } from "@/lib/stickers";
 
-const DEFAULT_COLORS = ["Mint", "Lilac", "Trắng", "Đen", "Hồng"];
+const ENGRAVING_COLORS = [
+  { id: "Hồng đào", hex: "#E887A5" },
+  { id: "Tím lavender", hex: "#9D83C7" },
+  { id: "Trắng ngọc trai", hex: "#F4F0E8" },
+  { id: "Xanh bạc hà", hex: "#83C9B1" },
+  { id: "Đen huyền", hex: "#302B35" },
+];
+const DEFAULT_COLORS = ENGRAVING_COLORS.map((item) => item.id);
 const DEFAULT_FONTS = ["Sans", "Script", "Mono"];
 const ENGRAVING_TYPES = [
   { id: "raised", label: "Khắc nổi" },
@@ -29,6 +36,7 @@ export default function ProductDetail() {
   const [added, setAdded] = useState(false);
   const [message, setMessage] = useState("");
   const [demoVisible, setDemoVisible] = useState(false);
+  const [expandedSticker, setExpandedSticker] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -36,14 +44,14 @@ export default function ProductDetail() {
       const p = all.find((x) => x.slug === slug || x.id === slug);
       setProduct(p || null);
       if (p) {
-        setColor((p.colors && p.colors[0]) || DEFAULT_COLORS[0]);
+        setColor(DEFAULT_COLORS[0]);
         setFont((p.fonts && p.fonts[0]) || DEFAULT_FONTS[0]);
       }
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [slug]);
 
-  const colors = useMemo(() => (product?.colors?.length ? product.colors : DEFAULT_COLORS), [product]);
+  const colors = useMemo(() => DEFAULT_COLORS, []);
   const fonts = useMemo(() => (product?.fonts?.length ? product.fonts : DEFAULT_FONTS), [product]);
 
   if (loading) {
@@ -77,8 +85,7 @@ export default function ProductDetail() {
   };
 
   const colorHex = (c) => {
-    const map = { Mint: "#00FFD1", Lilac: "#BB86FC", Trắng: "#F8F9FA", Đen: "#1A1A1C", Hồng: "#FF8FBC" };
-    return map[c] || "#00FFD1";
+    return ENGRAVING_COLORS.find((item) => item.id === c)?.hex || ENGRAVING_COLORS[0].hex;
   };
 
   return (
@@ -168,7 +175,7 @@ export default function ProductDetail() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-muted-foreground font-mono">COLOR</label>
+                <label className="text-xs font-medium text-muted-foreground font-mono">MÀU KHẮC CHỮ</label>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {colors.map((c) => (
                     <button
@@ -176,7 +183,7 @@ export default function ProductDetail() {
                       onClick={() => setColor(c)}
                       className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-colors ${color === c ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"}`}
                     >
-                      <span className="h-3.5 w-3.5 rounded-full border border-white/20" style={{ background: colorHex(c) }} />
+                      <span className="h-4 w-4 rounded-full border border-black/10 shadow-sm" style={{ background: colorHex(c) }} />
                       {c}
                     </button>
                   ))}
@@ -199,7 +206,10 @@ export default function ProductDetail() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground font-mono">STICKER</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-muted-foreground font-mono">STICKER</label>
+                    <span className="text-[11px] text-muted-foreground">Bấm vào ảnh để xem lớn</span>
+                  </div>
                   <div className="mt-2 grid grid-cols-2 gap-2">
                     {STICKERS.map((item) => (
                       <button
@@ -209,7 +219,15 @@ export default function ProductDetail() {
                         className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${sticker === item.id ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/40"}`}
                       >
                         {item.image ? (
-                          <img src={item.image} alt="" className="h-10 w-10 shrink-0 rounded object-cover" />
+                          <img
+                            src={item.image}
+                            alt=""
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setExpandedSticker(item);
+                            }}
+                            className="h-10 w-10 shrink-0 cursor-zoom-in rounded object-cover"
+                          />
                         ) : (
                           <span className="grid h-10 w-10 shrink-0 place-items-center text-lg">{item.emoji}</span>
                         )}
@@ -262,6 +280,28 @@ export default function ProductDetail() {
           </button>
         </div>
       </div>
+      {expandedSticker?.image && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Xem sticker ${expandedSticker.label}`}
+          className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4 backdrop-blur-sm"
+          onClick={() => setExpandedSticker(null)}
+        >
+          <div className="relative max-h-[90vh] max-w-3xl rounded-2xl bg-background p-3 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              aria-label="Đóng ảnh sticker"
+              onClick={() => setExpandedSticker(null)}
+              className="absolute right-5 top-5 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/65 text-white hover:bg-black/80"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <img src={expandedSticker.image} alt={expandedSticker.label} className="max-h-[84vh] w-auto max-w-full rounded-xl object-contain" />
+            <p className="pt-2 text-center text-sm font-medium">{expandedSticker.label}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
