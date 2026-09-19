@@ -20,9 +20,10 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     if (!container) return undefined;
 
     const scene = new THREE.Scene();
+    let defaultViewDistance = 3.2;
     const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
-    camera.up.set(0, 0, 1);
-    camera.position.set(0, 3.2, 0.2);
+    camera.up.set(-1, 0, 0);
+    camera.position.set(0, defaultViewDistance, 0.2);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -45,8 +46,8 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     controls.maxDistance = 5;
     controls.target.set(0, 0, 0);
     const resetView = () => {
-      camera.up.set(0, 0, 1);
-      camera.position.set(0, 3.2, 0.2);
+      camera.up.set(-1, 0, 0);
+      camera.position.set(0, defaultViewDistance, 0.2);
       controls.target.set(0, 0, 0);
       controls.update();
     };
@@ -92,9 +93,18 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
         modelSize = size.clone();
         const maxSize = Math.max(size.x, size.y, size.z) || 1;
         model.position.sub(center);
-        model.scale.setScalar(1.3 / maxSize);
+        model.scale.setScalar(2.1 / maxSize);
         model.add(stickerGroup);
         model.updateMatrixWorld(true);
+        const scaledBox = new THREE.Box3().setFromObject(model);
+        const scaledSphere = scaledBox.getBoundingSphere(new THREE.Sphere());
+        const fitDistance = (scaledSphere.radius / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.35;
+        defaultViewDistance = fitDistance;
+        controls.target.copy(scaledSphere.center);
+        camera.position.set(scaledSphere.center.x, scaledSphere.center.y + fitDistance, scaledSphere.center.z);
+        camera.lookAt(scaledSphere.center);
+        controls.minDistance = fitDistance * 0.55;
+        controls.maxDistance = fitDistance * 2.2;
         controls.update();
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
         const centerHit = raycaster.intersectObjects(modelMeshes, false)[0];
