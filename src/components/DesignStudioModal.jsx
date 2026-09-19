@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Copy, RotateCcw, SlidersHorizontal, Sparkles, Trash2, X } from "lucide-react";
+import { Copy, HelpCircle, RotateCcw, SlidersHorizontal, Sparkles, Trash2, X } from "lucide-react";
 import { STICKERS } from "@/lib/stickers";
 import ModelPreview from "@/components/ModelPreview";
 
@@ -36,6 +36,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
   const [opacity, setOpacity] = useState(100);
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const selected = layers.find((layer) => layer.id === selectedId);
   const isModelProduct = product.slug === "guong-cam-tay-lap-lanh";
@@ -123,7 +124,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-slate-950 text-slate-100">
+    <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-slate-950 text-slate-100" onPointerDown={() => setShowInstructions(false)}>
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-800 bg-slate-950 px-4">
         <div className="flex items-center gap-3">
           <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-tr from-pink-500 to-purple-600">
@@ -223,8 +224,30 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
               );
             })}
           </div>
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-slate-700 bg-slate-950/90 px-4 py-2 text-xs text-slate-300 shadow-xl">
-            Bấm vào sticker để chọn · Kéo sticker để di chuyển · Bấm ra ngoài để bỏ chọn
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
+            {showInstructions ? (
+              <div
+                className="w-72 rounded-xl border border-slate-700 bg-slate-950/95 p-3 text-xs text-slate-300 shadow-xl backdrop-blur"
+                onPointerDown={(event) => event.stopPropagation()}
+              >
+                <div className="mb-2 flex items-center gap-2 font-semibold text-pink-300">
+                  <HelpCircle className="h-4 w-4" /> Cách chỉnh sticker
+                </div>
+                <p>Bấm vào sticker để chọn và hiện khung chỉnh sửa.</p>
+                <p className="mt-1">Kéo sticker để di chuyển trên sản phẩm.</p>
+                <p className="mt-1">Bấm ra ngoài ảnh để bỏ chọn sticker.</p>
+                <p className="mt-1">Dùng bảng bên phải để đổi kích thước, xoay và độ trong suốt.</p>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={() => setShowInstructions(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950/90 px-3 py-1.5 text-xs text-slate-300 shadow-xl hover:border-pink-400 hover:text-pink-300"
+              >
+                <HelpCircle className="h-3.5 w-3.5" /> Hướng dẫn
+              </button>
+            )}
           </div>
         </main>
 
