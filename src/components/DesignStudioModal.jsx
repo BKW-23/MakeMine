@@ -31,7 +31,7 @@ const stickerCropStyle = (sticker) => ({
 export default function DesignStudioModal({ product, name, message, colorHex, initialLayers = [], onClose, onSave }) {
   const availableStickers = useMemo(() => STICKERS.filter((item) => item.image), []);
   const [layers, setLayers] = useState(initialLayers);
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState(initialLayers[initialLayers.length - 1]?.id || null);
   const [tint, setTint] = useState("original");
   const [opacity, setOpacity] = useState(100);
   const [scale, setScale] = useState(1);
@@ -87,7 +87,8 @@ export default function DesignStudioModal({ product, name, message, colorHex, in
   };
 
   const closeStudio = () => {
-    onSave?.(layers);
+    const selectedLayer = layers.find((layer) => layer.id === selectedId) || layers[layers.length - 1];
+    onSave?.(layers, selectedLayer?.sticker?.id || "none");
     onClose();
   };
 

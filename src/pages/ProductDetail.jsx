@@ -312,7 +312,10 @@ export default function ProductDetail() {
           message={message}
           colorHex={colorHex(color)}
           initialLayers={savedDesign}
-          onSave={setSavedDesign}
+          onSave={(layers, selectedStickerId) => {
+            setSavedDesign(layers);
+            setSticker(selectedStickerId || "none");
+          }}
           onClose={() => setStudioOpen(false)}
         />
       )}
