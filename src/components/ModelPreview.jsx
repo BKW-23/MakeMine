@@ -4,7 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { DecalGeometry } from "three/examples/jsm/geometries/DecalGeometry.js";
 
-export default function ModelPreview({ src, alt, layers = [], selectedId, onSelectLayer, onMoveLayer }) {
+export default function ModelPreview({ src, alt, layers = [], selectedId, onSelectLayer, onMoveLayer, onResetView }) {
   const containerRef = useRef(null);
   const layersRef = useRef(layers);
   const selectedIdRef = useRef(selectedId);
@@ -21,7 +21,8 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
-    camera.position.set(0, 0.2, 3.2);
+    camera.up.set(-1, 0, 0);
+    camera.position.set(0, 3.2, 0.2);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -43,6 +44,13 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     controls.minDistance = 1.5;
     controls.maxDistance = 5;
     controls.target.set(0, 0, 0);
+    const resetView = () => {
+      camera.up.set(-1, 0, 0);
+      camera.position.set(0, 3.2, 0.2);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    };
+    onResetView?.(() => resetView);
 
     let frameId;
     let model;
@@ -236,6 +244,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
       renderer.domElement.removeEventListener("pointermove", onPointerMove);
       renderer.domElement.removeEventListener("pointerup", onPointerUp);
+      onResetView?.(null);
       if (model) {
         model.traverse((object) => {
           if (object.isMesh) {

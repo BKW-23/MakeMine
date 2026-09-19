@@ -37,6 +37,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [resetModelView, setResetModelView] = useState(null);
 
   const selected = layers.find((layer) => layer.id === selectedId);
   const isModelProduct = product.slug === "guong-cam-tay-lap-lanh";
@@ -168,7 +169,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
         </aside>
 
         <main className="checkerboard-bg relative flex min-w-0 flex-1 items-center justify-center overflow-hidden p-5" onPointerDown={() => setSelectedId(null)}>
-          <div className="relative aspect-square w-full max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl" onPointerDown={(event) => event.stopPropagation()}>
+          <div className="relative aspect-square w-full max-w-[min(72vh,680px)] overflow-hidden rounded-2xl border border-slate-700/70 bg-white shadow-2xl">
             {isModelProduct ? (
               <div className="absolute inset-0 bg-gradient-to-br from-pink-100 via-white to-purple-100">
                 <ModelPreview
@@ -178,6 +179,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
                   selectedId={selectedId}
                   onSelectLayer={setSelectedId}
                   onMoveLayer={updateSurfaceLayer}
+                  onResetView={setResetModelView}
                 />
               </div>
             ) : (
@@ -235,7 +237,7 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
                 </div>
                 <p>Bấm vào sticker để chọn và hiện khung chỉnh sửa.</p>
                 <p className="mt-1">Kéo sticker để di chuyển trên sản phẩm.</p>
-                <p className="mt-1">Bấm ra ngoài ảnh để bỏ chọn sticker.</p>
+                <p className="mt-1">Bấm ra ngoài viền sticker để bỏ chọn.</p>
                 <p className="mt-1">Dùng bảng bên phải để đổi kích thước, xoay và độ trong suốt.</p>
               </div>
             ) : (
@@ -249,6 +251,15 @@ export default function DesignStudioModal({ product, name, message, colorHex, on
               </button>
             )}
           </div>
+          {isModelProduct && (
+            <button
+              type="button"
+              onClick={() => resetModelView?.()}
+              className="absolute right-5 top-5 inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950/90 px-3 py-1.5 text-xs text-slate-300 shadow-xl hover:border-pink-400 hover:text-pink-300"
+            >
+              <RotateCcw className="h-3.5 w-3.5" /> Đưa về chính diện
+            </button>
+          )}
         </main>
 
         <aside className="hidden w-72 shrink-0 flex-col border-l border-slate-800 bg-slate-950 sm:flex">
