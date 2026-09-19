@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Minus, Plus, ShoppingBag, Check } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingBag, Check, Sparkles, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useCart } from "@/lib/cart";
 import { imageFor, formatVND } from "@/lib/productImages";
@@ -10,9 +10,13 @@ const DEFAULT_COLORS = ["Mint", "Lilac", "Trắng", "Đen", "Hồng"];
 const DEFAULT_FONTS = ["Sans", "Script", "Mono"];
 const STICKERS = [
   { id: "none", label: "Không sticker", emoji: "—" },
-  { id: "heart", label: "Trái tim", emoji: "♥" },
-  { id: "star", label: "Ngôi sao", emoji: "★" },
-  { id: "flower", label: "Hoa nhỏ", emoji: "✿" },
+  { id: "hello-kitty", label: "Hello Kitty", emoji: "🎀" },
+  { id: "bow", label: "Nơ", emoji: "🎀" },
+  { id: "star", label: "Sao", emoji: "★" },
+  { id: "heart", label: "Tim", emoji: "♥" },
+  { id: "bear", label: "Gấu", emoji: "🐻" },
+  { id: "flower", label: "Hoa", emoji: "✿" },
+  { id: "sparkle", label: "Lấp lánh", emoji: "✦" },
 ];
 const ENGRAVING_TYPES = [
   { id: "raised", label: "Khắc nổi" },
@@ -33,6 +37,9 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [message, setMessage] = useState("");
+  const [aiPreview, setAiPreview] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -80,6 +87,27 @@ export default function ProductDetail() {
     setTimeout(() => setAdded(false), 1800);
   };
 
+  const createAiPreview = async () => {
+    setAiLoading(true);
+    setAiError("");
+    try {
+      const result = await base44.functions.invoke("generatePreview", {
+        productName: product.name,
+        name: name.trim(),
+        color,
+        font,
+        sticker: STICKERS.find((item) => item.id === sticker)?.label || "Không sticker",
+        engravingType: engravingType === "raised" ? "khắc nổi" : "khắc chìm",
+      });
+      if (!result.data?.image) throw new Error("AI không trả về được ảnh demo.");
+      setAiPreview(result.data.image);
+    } catch (error) {
+      setAiError(error.message || "Không tạo được demo AI.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const colorHex = (c) => {
     const map = { Mint: "#00FFD1", Lilac: "#BB86FC", Trắng: "#F8F9FA", Đen: "#1A1A1C", Hồng: "#FF8FBC" };
     return map[c] || "#00FFD1";
@@ -95,7 +123,9 @@ export default function ProductDetail() {
         {/* Image — stationary, sticky */}
         <div className="md:sticky md:top-20 md:self-start">
           <div className="relative aspect-square overflow-hidden rounded-3xl border border-border bg-secondary">
-            {imageFor(product) && (
+            {aiPreview ? (
+              <img src={aiPreview} alt="Bản demo AI" className="h-full w-full object-cover" />
+            ) : imageFor(product) && (
               <img src={imageFor(product)} alt={product.name} className="h-full w-full object-cover" />
             )}
             {/* Live engraving preview overlay */}
@@ -136,6 +166,20 @@ export default function ProductDetail() {
             <span className="inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">{product.category}</span>
             <h1 className="mt-3 font-display text-3xl md:text-4xl font-bold">{product.name}</h1>
             <p className="mt-3 text-muted-foreground">{product.short_description}</p>
+          </div>
+
+          <div className="rounded-xl border border-primary/25 bg-primary/5 p-3">
+            <button
+              type="button"
+              onClick={createAiPreview}
+              disabled={aiLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:brightness-105 disabled:opacity-60"
+            >
+              {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {aiLoading ? "AI đang tạo demo..." : "Tạo bản demo bằng AI"}
+            </button>
+            <p className="mt-2 text-center text-xs text-muted-foreground">AI dựng mockup theo tên, sticker và kiểu khắc bạn chọn.</p>
+            {aiError && <p className="mt-2 text-xs text-destructive">{aiError}</p>}
           </div>
 
           <div className="text-3xl font-bold text-primary">{formatVND(product.base_price)}</div>

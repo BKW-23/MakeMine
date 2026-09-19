@@ -142,7 +142,11 @@ const orders = {
 
 const functions = {
   invoke(name, payload) {
-    const path = name === "giftSuggestion" ? "/api/gift-suggestion" : "/api/generate-greeting";
+    const path = name === "giftSuggestion"
+      ? "/api/gift-suggestion"
+      : name === "generatePreview"
+        ? "/api/generate-preview"
+        : "/api/generate-greeting";
     return apiRequest(path, { method: "POST", body: JSON.stringify(payload) }).then((data) => ({ data }));
   },
 };
