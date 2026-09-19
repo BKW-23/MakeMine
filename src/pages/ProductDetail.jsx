@@ -32,6 +32,8 @@ export default function ProductDetail() {
   const [message, setMessage] = useState("");
   const [includeMessage, setIncludeMessage] = useState(false);
   const [textSurface, setTextSurface] = useState(null);
+  const [textScale, setTextScale] = useState(1);
+  const [textRotation, setTextRotation] = useState(0);
   const [demoVisible, setDemoVisible] = useState(false);
   const [expandedSticker, setExpandedSticker] = useState(null);
   const [studioOpen, setStudioOpen] = useState(false);
@@ -245,6 +247,8 @@ export default function ProductDetail() {
           engravingType={engravingType}
           includeMessage={includeMessage}
           initialTextSurface={textSurface}
+          initialTextScale={textScale}
+          initialTextRotation={textRotation}
           initialLayers={savedDesign}
           onTextChange={(changes) => {
             if (changes.name !== undefined) setName(changes.name);
@@ -254,11 +258,15 @@ export default function ProductDetail() {
             if (changes.engravingType !== undefined) setEngravingType(changes.engravingType);
             if (changes.includeMessage !== undefined) setIncludeMessage(changes.includeMessage);
             if (changes.textSurface !== undefined) setTextSurface(changes.textSurface);
+            if (changes.textScale !== undefined) setTextScale(changes.textScale);
+            if (changes.textRotation !== undefined) setTextRotation(changes.textRotation);
           }}
           onSave={(layers, selectedStickerId, textChanges) => {
             setSavedDesign(layers);
             setSticker(selectedStickerId || "none");
             if (textChanges?.textSurface) setTextSurface(textChanges.textSurface);
+            if (textChanges?.textScale !== undefined) setTextScale(textChanges.textScale);
+            if (textChanges?.textRotation !== undefined) setTextRotation(textChanges.textRotation);
           }}
           onClose={() => setStudioOpen(false)}
         />

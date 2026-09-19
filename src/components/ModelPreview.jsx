@@ -17,6 +17,8 @@ export default function ModelPreview({
   message,
   textColor,
   textSurface,
+  textScale = 1,
+  textRotation = 0,
   textSelected,
   onSelectText,
   onMoveText,
@@ -29,7 +31,7 @@ export default function ModelPreview({
   const onMoveLayerRef = useRef(onMoveLayer);
   const onSelectTextRef = useRef(onSelectText);
   const onMoveTextRef = useRef(onMoveText);
-  const textRef = useRef({ text, includeMessage, message, textColor, textSurface, textSelected });
+  const textRef = useRef({ text, includeMessage, message, textColor, textSurface, textScale, textRotation, textSelected });
 
   layersRef.current = layers;
   selectedIdRef.current = selectedId;
@@ -37,7 +39,7 @@ export default function ModelPreview({
   onMoveLayerRef.current = onMoveLayer;
   onSelectTextRef.current = onSelectText;
   onMoveTextRef.current = onMoveText;
-  textRef.current = { text, includeMessage, message, textColor, textSurface, textSelected };
+  textRef.current = { text, includeMessage, message, textColor, textSurface, textScale, textRotation, textSelected };
 
   useEffect(() => {
     const container = containerRef.current;
@@ -214,7 +216,7 @@ export default function ModelPreview({
               layer.surface || null
             )}`
         )
-        .join("|")}|text:${currentText.text}|message:${currentText.includeMessage ? currentText.message : ""}|color:${currentText.textColor}|surface:${JSON.stringify(currentText.textSurface || null)}|selectedText:${currentText.textSelected}`;
+        .join("|")}|text:${currentText.text}|message:${currentText.includeMessage ? currentText.message : ""}|color:${currentText.textColor}|surface:${JSON.stringify(currentText.textSurface || null)}|scale:${currentText.textScale}|rotation:${currentText.textRotation}|selectedText:${currentText.textSelected}`;
 
       if (layersKey !== renderedLayersKey) {
         renderedLayersKey = layersKey;
@@ -320,9 +322,13 @@ export default function ModelPreview({
           if (surface) {
             const position = new THREE.Vector3(...surface.position);
             const normal = new THREE.Vector3(...surface.normal);
-            const orientation = new THREE.Euler().setFromQuaternion(
-              new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
+            const orientationQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+            orientationQuaternion.multiply(
+              new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(currentText.textRotation || 0))
             );
+            const orientation = new THREE.Euler().setFromQuaternion(orientationQuaternion);
+            const textWidth = modelSize.x * 0.62 * (currentText.textScale || 1);
+            const textHeight = modelSize.x * 0.22 * (currentText.textScale || 1);
             const material = new THREE.MeshBasicMaterial({
               map: textTexture,
               transparent: true,
@@ -331,7 +337,7 @@ export default function ModelPreview({
               polygonOffsetFactor: -4,
             });
             const textMesh = new THREE.Mesh(
-              new DecalGeometry(modelMeshes[0], position, orientation, new THREE.Vector3(modelSize.x * 0.62, modelSize.x * 0.22, Math.max(modelSize.z * 0.04, 0.001))),
+              new DecalGeometry(modelMeshes[0], position, orientation, new THREE.Vector3(textWidth, textHeight, Math.max(modelSize.z * 0.04, 0.001))),
               material
             );
             textMesh.userData.isTextPick = true;
@@ -339,7 +345,7 @@ export default function ModelPreview({
             stickerGroup.add(textMesh);
 
             const pickMesh = new THREE.Mesh(
-              new THREE.PlaneGeometry(modelSize.x * 0.62, modelSize.x * 0.22),
+              new THREE.PlaneGeometry(textWidth, textHeight),
               new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthTest: false, side: THREE.DoubleSide })
             );
             pickMesh.position.copy(position);
@@ -348,7 +354,7 @@ export default function ModelPreview({
             stickerGroup.add(pickMesh);
             if (currentText.textSelected) {
               const outline = new THREE.LineSegments(
-                new THREE.EdgesGeometry(new THREE.PlaneGeometry(modelSize.x * 0.62, modelSize.x * 0.22)),
+                new THREE.EdgesGeometry(new THREE.PlaneGeometry(textWidth, textHeight)),
                 new THREE.LineBasicMaterial({ color: 0x3b82f6, depthTest: false })
               );
               outline.position.copy(position);
@@ -399,11 +405,12 @@ export default function ModelPreview({
       const textHit = raycaster.intersectObjects(stickerGroup.children, false)
         .find((intersection) => intersection.object.userData.isTextPick);
       if (textHit) {
-        onSelectTextRef.current?.();
+        onSelectTextRef.current?.(true);
         controls.enabled = false;
         draggingLayer = "text";
         return;
       }
+      onSelectTextRef.current?.(false);
       const hitDecal = decals[0]?.object;
       if (hitDecal?.userData.layerId) {
         draggingLayer = hitDecal.userData.layerId;

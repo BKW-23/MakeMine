@@ -51,6 +51,8 @@ export default function DesignStudioModal({
   engravingType,
   includeMessage,
   initialTextSurface = null,
+  initialTextScale = 1,
+  initialTextRotation = 0,
   initialLayers = [],
   onClose,
   onSave,
@@ -68,6 +70,8 @@ export default function DesignStudioModal({
   const [mobilePanel, setMobilePanel] = useState("controls");
   const [textSurface, setTextSurface] = useState(initialTextSurface);
   const [textSelected, setTextSelected] = useState(false);
+  const [textScale, setTextScale] = useState(initialTextScale);
+  const [textRotation, setTextRotation] = useState(initialTextRotation);
 
   const selected = layers.find((layer) => layer.id === selectedId);
   const isModelProduct = product.slug === "guong-cam-tay-lap-lanh";
@@ -111,6 +115,8 @@ export default function DesignStudioModal({
     setOpacity(100);
     setScale(1);
     setRotation(0);
+    setTextScale(1);
+    setTextRotation(0);
     setMobilePanel(null);
     resetModelView?.();
     onTextChange?.({
@@ -127,7 +133,7 @@ export default function DesignStudioModal({
   const closeStudio = () => {
     const selectedLayer = layers.find((layer) => layer.id === selectedId) || layers[layers.length - 1];
     onSave?.(layers, selectedLayer?.sticker?.id || "none", {
-      name, message, color, font, engravingType, includeMessage, textSurface,
+      name, message, color, font, engravingType, includeMessage, textSurface, textScale, textRotation,
     });
     onClose();
   };
@@ -248,8 +254,10 @@ export default function DesignStudioModal({
                   message={message}
                   textColor={colorHex}
                   textSurface={textSurface}
+                  textScale={textScale}
+                  textRotation={textRotation}
                   textSelected={textSelected}
-                  onSelectText={() => { setTextSelected(true); setSelectedId(null); }}
+                  onSelectText={(selectedText) => { setTextSelected(selectedText); if (selectedText) setSelectedId(null); }}
                   onMoveText={(surface) => {
                     setTextSurface(surface);
                     onTextChange?.({ textSurface: surface });
@@ -419,10 +427,10 @@ export default function DesignStudioModal({
               <input type="range" min="10" max="100" value={opacity} onChange={(event) => { setOpacity(event.target.value); updateSelected({ opacity: event.target.value }); }} className="mt-2 w-full accent-pink-500" disabled={!selected} />
             </label>
             <label className="block text-[11px] text-slate-400">Kích thước: {scale.toFixed(1)}x
-              <input type="range" min="0.5" max="2.5" step="0.1" value={scale} onChange={(event) => { setScale(Number(event.target.value)); updateSelected({ scale: Number(event.target.value) }); }} className="mt-2 w-full accent-pink-500" disabled={!selected} />
+              <input type="range" min="0.5" max="2.5" step="0.1" value={textSelected ? textScale : scale} onChange={(event) => { const value = Number(event.target.value); if (textSelected) { setTextScale(value); onTextChange?.({ textScale: value }); } else { setScale(value); updateSelected({ scale: value }); } }} className="mt-2 w-full accent-pink-500" disabled={!selected && !textSelected} />
             </label>
-            <label className="block text-[11px] text-slate-400">Xoay sticker: {rotation}°
-              <input type="range" min="-180" max="180" step="1" value={rotation} onChange={(event) => { setRotation(Number(event.target.value)); updateSelected({ rotation: Number(event.target.value) }); }} className="mt-2 w-full accent-pink-500" disabled={!selected} />
+            <label className="block text-[11px] text-slate-400">{textSelected ? "Xoay chữ" : "Xoay sticker"}: {textSelected ? textRotation : rotation}°
+              <input type="range" min="-180" max="180" step="1" value={textSelected ? textRotation : rotation} onChange={(event) => { const value = Number(event.target.value); if (textSelected) { setTextRotation(value); onTextChange?.({ textRotation: value }); } else { setRotation(value); updateSelected({ rotation: value }); } }} className="mt-2 w-full accent-pink-500" disabled={!selected && !textSelected} />
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button type="button" onClick={() => selected && addSticker(selected.sticker)} className="rounded-lg border border-slate-700 p-2 text-[11px] text-slate-300 hover:bg-slate-800"><Copy className="mx-auto mb-1 h-4 w-4" />Nhân bản</button>
