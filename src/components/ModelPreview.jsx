@@ -21,6 +21,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
 
     const scene = new THREE.Scene();
     let defaultViewDistance = 3.2;
+    const isMobileViewport = () => window.matchMedia("(max-width: 1023px)").matches;
     const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 100);
     camera.up.set(-1, 0, 0);
     camera.position.set(0, defaultViewDistance, 0.2);
@@ -45,10 +46,31 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     controls.minDistance = 1.5;
     controls.maxDistance = 5;
     controls.target.set(0, 0, 0);
+    const fitMobileView = () => {
+      if (!model || !isMobileViewport()) return;
+      model.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(model);
+      const sphere = box.getBoundingSphere(new THREE.Sphere());
+      const aspect = camera.aspect || 1;
+      const verticalHalfFov = THREE.MathUtils.degToRad(camera.fov / 2);
+      const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * aspect);
+      const limitingHalfFov = Math.min(verticalHalfFov, horizontalHalfFov);
+      defaultViewDistance = (sphere.radius / Math.sin(limitingHalfFov)) * 1.25;
+      camera.position.set(sphere.center.x, sphere.center.y + defaultViewDistance, sphere.center.z);
+      camera.lookAt(sphere.center);
+      controls.target.copy(sphere.center);
+      controls.minDistance = defaultViewDistance * 0.55;
+      controls.maxDistance = defaultViewDistance * 2.2;
+      controls.update();
+    };
     const resetView = () => {
       camera.up.set(-1, 0, 0);
-      camera.position.set(0, defaultViewDistance, 0.2);
-      controls.target.set(0, 0, 0);
+      if (isMobileViewport()) {
+        fitMobileView();
+      } else {
+        camera.position.set(0, defaultViewDistance, 0.2);
+        controls.target.set(0, 0, 0);
+      }
       controls.update();
     };
     onResetView?.(() => resetView);
@@ -69,6 +91,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
+      fitMobileView();
     };
     const observer = new ResizeObserver(resize);
     observer.observe(container);
@@ -106,6 +129,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
         controls.minDistance = fitDistance * 0.55;
         controls.maxDistance = fitDistance * 2.2;
         controls.update();
+        fitMobileView();
         raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
         const centerHit = raycaster.intersectObjects(modelMeshes, false)[0];
         if (centerHit?.face) {
