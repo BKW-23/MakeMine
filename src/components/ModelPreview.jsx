@@ -48,6 +48,10 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     controls.target.set(0, 0, 0);
     const fitMobileView = () => {
       if (!model || !isMobileViewport()) return;
+      const rect = container.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      camera.aspect = rect.width / rect.height;
+      camera.updateProjectionMatrix();
       model.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(model);
       const center = box.getCenter(new THREE.Vector3());
@@ -105,13 +109,19 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     const pointer = new THREE.Vector2();
     const modelMeshes = [];
     let draggingLayer = null;
+    let resizeFrame = 0;
     const resize = () => {
-      const width = container.clientWidth || 1;
-      const height = container.clientHeight || 1;
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height, false);
-      fitMobileView();
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(() => {
+        const rect = container.getBoundingClientRect();
+        const width = rect.width || 1;
+        const height = rect.height || 1;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height, false);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        fitMobileView();
+      });
     };
     const observer = new ResizeObserver(resize);
     observer.observe(container);
@@ -161,6 +171,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
         }
         renderedLayersKey = "";
         scene.add(model);
+        fitMobileView();
       },
       undefined,
       (error) => console.error("Unable to load product model.", error),
@@ -308,6 +319,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
 
     return () => {
       cancelAnimationFrame(frameId);
+      cancelAnimationFrame(resizeFrame);
       observer.disconnect();
       controls.dispose();
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
