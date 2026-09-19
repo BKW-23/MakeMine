@@ -244,7 +244,7 @@ export default function ModelPreview({
           orientationQuaternion.multiply(
             new THREE.Quaternion().setFromAxisAngle(
               new THREE.Vector3(0, 0, 1),
-              Math.PI + THREE.MathUtils.degToRad(layer.rotation || 0)
+              Math.PI / 2 + THREE.MathUtils.degToRad(layer.rotation || 0)
             )
           );
           const orientation = new THREE.Euler().setFromQuaternion(orientationQuaternion);
@@ -336,7 +336,7 @@ export default function ModelPreview({
             orientationQuaternion.multiply(
               new THREE.Quaternion().setFromAxisAngle(
                 new THREE.Vector3(0, 0, 1),
-                Math.PI + THREE.MathUtils.degToRad(currentText.textRotation || 0)
+                Math.PI / 2 + THREE.MathUtils.degToRad(currentText.textRotation || 0)
               )
             );
             const orientation = new THREE.Euler().setFromQuaternion(orientationQuaternion);
