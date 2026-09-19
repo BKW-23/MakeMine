@@ -237,10 +237,17 @@ export default function ModelPreview({
           const normal = surface?.normal
             ? new THREE.Vector3(...surface.normal)
             : new THREE.Vector3(0, 0, 1);
-          const orientation = new THREE.Euler().setFromQuaternion(
-            new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
+          const orientationQuaternion = new THREE.Quaternion().setFromUnitVectors(
+            new THREE.Vector3(0, 0, 1),
+            normal
           );
-          orientation.z += THREE.MathUtils.degToRad(layer.rotation || 0);
+          orientationQuaternion.multiply(
+            new THREE.Quaternion().setFromAxisAngle(
+              new THREE.Vector3(0, 0, 1),
+              Math.PI + THREE.MathUtils.degToRad(layer.rotation || 0)
+            )
+          );
+          const orientation = new THREE.Euler().setFromQuaternion(orientationQuaternion);
 
           new THREE.TextureLoader().load(image, (texture) => {
             const aspect = texture.image.width / texture.image.height || 1;
@@ -322,9 +329,15 @@ export default function ModelPreview({
           if (surface) {
             const position = new THREE.Vector3(...surface.position);
             const normal = new THREE.Vector3(...surface.normal);
-            const orientationQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+            const orientationQuaternion = new THREE.Quaternion().setFromUnitVectors(
+              new THREE.Vector3(0, 0, 1),
+              normal
+            );
             orientationQuaternion.multiply(
-              new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(currentText.textRotation || 0))
+              new THREE.Quaternion().setFromAxisAngle(
+                new THREE.Vector3(0, 0, 1),
+                Math.PI + THREE.MathUtils.degToRad(currentText.textRotation || 0)
+              )
             );
             const orientation = new THREE.Euler().setFromQuaternion(orientationQuaternion);
             const textWidth = modelSize.x * 0.62 * (currentText.textScale || 1);
