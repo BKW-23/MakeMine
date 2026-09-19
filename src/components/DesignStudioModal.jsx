@@ -48,6 +48,8 @@ export default function DesignStudioModal({
   color,
   font,
   engravingType,
+  includeMessage,
+  initialTextPosition = { x: 50, y: 78 },
   initialLayers = [],
   onClose,
   onSave,
@@ -63,6 +65,8 @@ export default function DesignStudioModal({
   const [showInstructions, setShowInstructions] = useState(false);
   const [resetModelView, setResetModelView] = useState(null);
   const [mobilePanel, setMobilePanel] = useState("controls");
+  const [textPosition, setTextPosition] = useState(initialTextPosition);
+  const [textSelected, setTextSelected] = useState(false);
 
   const selected = layers.find((layer) => layer.id === selectedId);
   const isModelProduct = product.slug === "guong-cam-tay-lap-lanh";
@@ -114,12 +118,16 @@ export default function DesignStudioModal({
       color: ENGRAVING_COLORS[0].id,
       font: product.fonts?.[0] || "Sans",
       engravingType: "raised",
+      includeMessage: false,
     });
+    setTextPosition({ x: 50, y: 78 });
   };
 
   const closeStudio = () => {
     const selectedLayer = layers.find((layer) => layer.id === selectedId) || layers[layers.length - 1];
-    onSave?.(layers, selectedLayer?.sticker?.id || "none", { name, message, color, font, engravingType });
+    onSave?.(layers, selectedLayer?.sticker?.id || "none", {
+      name, message, color, font, engravingType, includeMessage, textPosition,
+    });
     onClose();
   };
 
@@ -160,10 +168,34 @@ export default function DesignStudioModal({
       setScale(nextScale);
       updateSelected({ scale: nextScale });
     };
+
     const stop = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", stop);
     };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+  };
+
+  const handleTextDrag = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const canvas = event.currentTarget.parentElement;
+    const rect = canvas?.getBoundingClientRect();
+    if (!rect) return;
+    const move = (moveEvent) => {
+      const nextPosition = {
+        x: Math.min(88, Math.max(12, ((moveEvent.clientX - rect.left) / rect.width) * 100)),
+        y: Math.min(88, Math.max(12, ((moveEvent.clientY - rect.top) / rect.height) * 100)),
+      };
+      setTextPosition(nextPosition);
+      onTextChange?.({ textPosition: nextPosition });
+    };
+    const stop = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+    };
+    setTextSelected(true);
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", stop);
   };
@@ -237,12 +269,20 @@ export default function DesignStudioModal({
             ) : (
               <img src={product.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
             )}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-6 pt-20">
-              <div className="mx-auto w-fit rounded-xl bg-white/85 px-4 py-2 text-center backdrop-blur">
+            {(name || (includeMessage && message)) && (
+              <div
+                role="button"
+                tabIndex={0}
+                onPointerDown={handleTextDrag}
+                onClick={(event) => { event.stopPropagation(); setTextSelected(true); }}
+                onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setTextSelected(true); }}
+                className={`absolute z-20 max-w-[82%] -translate-x-1/2 -translate-y-1/2 cursor-move rounded-xl bg-white/85 px-4 py-2 text-center shadow-sm backdrop-blur ${textSelected ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
+                style={{ left: `${textPosition.x}%`, top: `${textPosition.y}%` }}
+              >
                 {name && <div className="text-2xl font-bold" style={{ color: colorHex }}>{name}</div>}
-                {message && <div className="mt-1 text-xs italic text-slate-700">“{message}”</div>}
+                {includeMessage && message && <div className="mt-1 text-xs italic text-slate-700">“{message}”</div>}
               </div>
-            </div>
+            )}
             {!isModelProduct && layers.map((layer) => {
               const selectedLayer = layer.id === selectedId;
               return (
@@ -337,15 +377,24 @@ export default function DesignStudioModal({
                 value={name}
                 onChange={(event) => onTextChange?.({ name: event.target.value.slice(0, 20) })}
                 placeholder="Tên cần khắc (tối đa 20 ký tự)"
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-pink-400"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-black outline-none placeholder:text-slate-400 focus:border-pink-400"
               />
               <textarea
                 value={message}
                 onChange={(event) => onTextChange?.({ message: event.target.value.slice(0, 80) })}
                 placeholder="Lời nhắn (không bắt buộc)"
                 rows={2}
-                className="w-full resize-none rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-pink-400"
+                className="w-full resize-none rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-black outline-none placeholder:text-slate-400 focus:border-pink-400"
               />
+              <label className="flex items-center gap-2 text-xs text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={includeMessage}
+                  onChange={(event) => onTextChange?.({ includeMessage: event.target.checked })}
+                  className="h-4 w-4 accent-pink-500"
+                />
+                Khắc cả lời chúc
+              </label>
               <GreetingGenerator productName={product.name} onConfirm={(nextMessage) => onTextChange?.({ message: nextMessage })} />
               <div className="flex flex-wrap gap-1.5">
                 {product.fonts?.length ? product.fonts.map((item) => (

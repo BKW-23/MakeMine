@@ -30,6 +30,8 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [message, setMessage] = useState("");
+  const [includeMessage, setIncludeMessage] = useState(false);
+  const [textPosition, setTextPosition] = useState({ x: 50, y: 78 });
   const [demoVisible, setDemoVisible] = useState(false);
   const [expandedSticker, setExpandedSticker] = useState(null);
   const [studioOpen, setStudioOpen] = useState(false);
@@ -62,7 +64,7 @@ export default function ProductDetail() {
 
   const handleAdd = () => {
     const customization = product.customizable
-      ? { name: name.trim(), color, font, sticker, engravingType, message: message || undefined, designLayers: savedDesign }
+      ? { name: name.trim(), color, font, sticker, engravingType, message: includeMessage ? message || undefined : undefined, designLayers: savedDesign }
       : {};
     addItem({
       key: product.id + JSON.stringify(customization),
@@ -241,6 +243,8 @@ export default function ProductDetail() {
           color={color}
           font={font}
           engravingType={engravingType}
+          includeMessage={includeMessage}
+          initialTextPosition={textPosition}
           initialLayers={savedDesign}
           onTextChange={(changes) => {
             if (changes.name !== undefined) setName(changes.name);
@@ -248,10 +252,13 @@ export default function ProductDetail() {
             if (changes.color !== undefined) setColor(changes.color);
             if (changes.font !== undefined) setFont(changes.font);
             if (changes.engravingType !== undefined) setEngravingType(changes.engravingType);
+            if (changes.includeMessage !== undefined) setIncludeMessage(changes.includeMessage);
+            if (changes.textPosition !== undefined) setTextPosition(changes.textPosition);
           }}
-          onSave={(layers, selectedStickerId) => {
+          onSave={(layers, selectedStickerId, textChanges) => {
             setSavedDesign(layers);
             setSticker(selectedStickerId || "none");
+            if (textChanges?.textPosition) setTextPosition(textChanges.textPosition);
           }}
           onClose={() => setStudioOpen(false)}
         />
