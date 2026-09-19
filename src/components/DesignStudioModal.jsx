@@ -357,11 +357,12 @@ export default function DesignStudioModal({
           <div className="shrink-0 space-y-5 border-b border-slate-800 p-4">
             <div className="space-y-3">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-pink-300">Nội dung khắc</div>
-              <input
+              <textarea
                 value={name}
                 onChange={(event) => onTextChange?.({ name: event.target.value.slice(0, 20) })}
                 placeholder="Tên cần khắc (tối đa 20 ký tự)"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-black outline-none placeholder:text-slate-400 focus:border-pink-400"
+                rows={2}
+                className="w-full resize-none rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-black outline-none placeholder:text-slate-400 focus:border-pink-400"
               />
               <textarea
                 value={message}

@@ -315,21 +315,33 @@ export default function ModelPreview({
           const hasMessage = currentText.includeMessage && currentText.message;
           const textFont = "bold 112px sans-serif";
           const messageFont = "italic 42px sans-serif";
+          const nameLines = currentText.text.split(/\r?\n/);
+          const messageLines = hasMessage ? currentText.message.split(/\r?\n/) : [];
           context.font = textFont;
-          const nameWidth = context.measureText(currentText.text).width;
+          const nameWidth = Math.max(...nameLines.map((line) => context.measureText(line || " ").width));
           context.font = messageFont;
-          const messageWidth = hasMessage ? context.measureText(`“${currentText.message}”`).width : 0;
+          const messageWidth = hasMessage
+            ? Math.max(...messageLines.map((line) => context.measureText(`“${line}”`).width))
+            : 0;
+          const nameLineHeight = 130;
+          const messageLineHeight = 58;
+          const nameHeight = nameLines.length * nameLineHeight;
+          const messageHeight = messageLines.length * messageLineHeight;
           canvas.width = Math.ceil(Math.max(nameWidth, messageWidth) + 96);
-          canvas.height = hasMessage ? 360 : 260;
+          canvas.height = nameHeight + (hasMessage ? messageHeight + 42 : 0);
           context = canvas.getContext("2d");
           context.fillStyle = currentText.textColor || "#000000";
           context.textAlign = "center";
           context.textBaseline = "middle";
           context.font = textFont;
-          context.fillText(currentText.text, canvas.width / 2, 130);
+          nameLines.forEach((line, index) => {
+            context.fillText(line, canvas.width / 2, nameLineHeight / 2 + index * nameLineHeight);
+          });
           if (hasMessage) {
             context.font = messageFont;
-            context.fillText(`“${currentText.message}”`, canvas.width / 2, 245);
+            messageLines.forEach((line, index) => {
+              context.fillText(`“${line}”`, canvas.width / 2, nameHeight + 21 + index * messageLineHeight);
+            });
           }
           textTexture = new THREE.CanvasTexture(canvas);
           textTexture.colorSpace = THREE.SRGBColorSpace;
