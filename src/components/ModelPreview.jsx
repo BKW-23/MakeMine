@@ -4,18 +4,40 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { DecalGeometry } from "three/examples/jsm/geometries/DecalGeometry.js";
 
-export default function ModelPreview({ src, alt, layers = [], selectedId, onSelectLayer, onMoveLayer, onResetView }) {
+export default function ModelPreview({
+  src,
+  alt,
+  layers = [],
+  selectedId,
+  onSelectLayer,
+  onMoveLayer,
+  onResetView,
+  text,
+  includeMessage,
+  message,
+  textColor,
+  textSurface,
+  textSelected,
+  onSelectText,
+  onMoveText,
+}) {
   const containerRef = useRef(null);
   const [showHint, setShowHint] = useState(true);
   const layersRef = useRef(layers);
   const selectedIdRef = useRef(selectedId);
   const onSelectLayerRef = useRef(onSelectLayer);
   const onMoveLayerRef = useRef(onMoveLayer);
+  const onSelectTextRef = useRef(onSelectText);
+  const onMoveTextRef = useRef(onMoveText);
+  const textRef = useRef({ text, includeMessage, message, textColor, textSurface, textSelected });
 
   layersRef.current = layers;
   selectedIdRef.current = selectedId;
   onSelectLayerRef.current = onSelectLayer;
   onMoveLayerRef.current = onMoveLayer;
+  onSelectTextRef.current = onSelectText;
+  onMoveTextRef.current = onMoveText;
+  textRef.current = { text, includeMessage, message, textColor, textSurface, textSelected };
 
   useEffect(() => {
     const container = containerRef.current;
@@ -52,6 +74,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
     let modelSize = new THREE.Vector3(1, 1, 1);
     let defaultSurface = null;
     let renderedLayersKey = "";
+    let textTexture;
     const stickerGroup = new THREE.Group();
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
@@ -183,6 +206,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       controls.update();
 
       const currentLayers = layersRef.current;
+      const currentText = textRef.current;
       const layersKey = `${selectedIdRef.current}|${currentLayers
         .map(
           (layer) =>
@@ -190,7 +214,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
               layer.surface || null
             )}`
         )
-        .join("|")}`;
+        .join("|")}|text:${currentText.text}|message:${currentText.includeMessage ? currentText.message : ""}|color:${currentText.textColor}|surface:${JSON.stringify(currentText.textSurface || null)}|selectedText:${currentText.textSelected}`;
 
       if (layersKey !== renderedLayersKey) {
         renderedLayersKey = layersKey;
@@ -275,6 +299,66 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
             }
           });
         });
+
+        if (currentText.text) {
+          const canvas = document.createElement("canvas");
+          canvas.width = 1024;
+          canvas.height = currentText.includeMessage && currentText.message ? 360 : 260;
+          const context = canvas.getContext("2d");
+          context.fillStyle = currentText.textColor || "#000000";
+          context.textAlign = "center";
+          context.textBaseline = "middle";
+          context.font = "bold 112px sans-serif";
+          context.fillText(currentText.text, canvas.width / 2, 130);
+          if (currentText.includeMessage && currentText.message) {
+            context.font = "italic 42px sans-serif";
+            context.fillText(`“${currentText.message}”`, canvas.width / 2, 245);
+          }
+          textTexture = new THREE.CanvasTexture(canvas);
+          textTexture.colorSpace = THREE.SRGBColorSpace;
+          const surface = currentText.textSurface || defaultSurface;
+          if (surface) {
+            const position = new THREE.Vector3(...surface.position);
+            const normal = new THREE.Vector3(...surface.normal);
+            const orientation = new THREE.Euler().setFromQuaternion(
+              new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal)
+            );
+            const material = new THREE.MeshBasicMaterial({
+              map: textTexture,
+              transparent: true,
+              depthTest: true,
+              polygonOffset: true,
+              polygonOffsetFactor: -4,
+            });
+            const textMesh = new THREE.Mesh(
+              new DecalGeometry(modelMeshes[0], position, orientation, new THREE.Vector3(modelSize.x * 0.62, modelSize.x * 0.22, Math.max(modelSize.z * 0.04, 0.001))),
+              material
+            );
+            textMesh.userData.isTextPick = true;
+            textMesh.renderOrder = 12;
+            stickerGroup.add(textMesh);
+
+            const pickMesh = new THREE.Mesh(
+              new THREE.PlaneGeometry(modelSize.x * 0.62, modelSize.x * 0.22),
+              new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthTest: false, side: THREE.DoubleSide })
+            );
+            pickMesh.position.copy(position);
+            pickMesh.rotation.copy(orientation);
+            pickMesh.userData.isTextPick = true;
+            stickerGroup.add(pickMesh);
+            if (currentText.textSelected) {
+              const outline = new THREE.LineSegments(
+                new THREE.EdgesGeometry(new THREE.PlaneGeometry(modelSize.x * 0.62, modelSize.x * 0.22)),
+                new THREE.LineBasicMaterial({ color: 0x3b82f6, depthTest: false })
+              );
+              outline.position.copy(position);
+              outline.rotation.copy(orientation);
+              outline.userData.isTextPick = true;
+              outline.renderOrder = 20;
+              stickerGroup.add(outline);
+            }
+          }
+        }
       }
       renderer.render(scene, camera);
     };
@@ -312,6 +396,14 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
       const decals = raycaster
         .intersectObjects(stickerGroup.children, false)
         .filter((intersection) => intersection.object.userData.isStickerPick);
+      const textHit = raycaster.intersectObjects(stickerGroup.children, false)
+        .find((intersection) => intersection.object.userData.isTextPick);
+      if (textHit) {
+        onSelectTextRef.current?.();
+        controls.enabled = false;
+        draggingLayer = "text";
+        return;
+      }
       const hitDecal = decals[0]?.object;
       if (hitDecal?.userData.layerId) {
         draggingLayer = hitDecal.userData.layerId;
@@ -338,7 +430,11 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
         .clone()
         .transformDirection(model.matrixWorld.clone().invert())
         .normalize();
-      onMoveLayerRef.current?.(draggingLayer, { position: position.toArray(), normal: normal.toArray() });
+      if (draggingLayer === "text") {
+        onMoveTextRef.current?.({ position: position.toArray(), normal: normal.toArray() });
+      } else {
+        onMoveLayerRef.current?.(draggingLayer, { position: position.toArray(), normal: normal.toArray() });
+      }
     };
 
     const onPointerUp = () => {
@@ -376,6 +472,7 @@ export default function ModelPreview({ src, alt, layers = [], selectedId, onSele
             if (Array.isArray(object.material)) object.material.forEach((material) => material.dispose());
             else object.material.dispose();
           }
+          textTexture?.dispose();
         });
       }
       renderer.dispose();

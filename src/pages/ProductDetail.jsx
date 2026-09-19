@@ -31,7 +31,7 @@ export default function ProductDetail() {
   const [added, setAdded] = useState(false);
   const [message, setMessage] = useState("");
   const [includeMessage, setIncludeMessage] = useState(false);
-  const [textPosition, setTextPosition] = useState({ x: 50, y: 78 });
+  const [textSurface, setTextSurface] = useState(null);
   const [demoVisible, setDemoVisible] = useState(false);
   const [expandedSticker, setExpandedSticker] = useState(null);
   const [studioOpen, setStudioOpen] = useState(false);
@@ -244,7 +244,7 @@ export default function ProductDetail() {
           font={font}
           engravingType={engravingType}
           includeMessage={includeMessage}
-          initialTextPosition={textPosition}
+          initialTextSurface={textSurface}
           initialLayers={savedDesign}
           onTextChange={(changes) => {
             if (changes.name !== undefined) setName(changes.name);
@@ -253,12 +253,12 @@ export default function ProductDetail() {
             if (changes.font !== undefined) setFont(changes.font);
             if (changes.engravingType !== undefined) setEngravingType(changes.engravingType);
             if (changes.includeMessage !== undefined) setIncludeMessage(changes.includeMessage);
-            if (changes.textPosition !== undefined) setTextPosition(changes.textPosition);
+            if (changes.textSurface !== undefined) setTextSurface(changes.textSurface);
           }}
           onSave={(layers, selectedStickerId, textChanges) => {
             setSavedDesign(layers);
             setSticker(selectedStickerId || "none");
-            if (textChanges?.textPosition) setTextPosition(textChanges.textPosition);
+            if (textChanges?.textSurface) setTextSurface(textChanges.textSurface);
           }}
           onClose={() => setStudioOpen(false)}
         />

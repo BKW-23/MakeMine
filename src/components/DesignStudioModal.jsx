@@ -50,7 +50,7 @@ export default function DesignStudioModal({
   font,
   engravingType,
   includeMessage,
-  initialTextPosition = { x: 50, y: 78 },
+  initialTextSurface = null,
   initialLayers = [],
   onClose,
   onSave,
@@ -66,7 +66,7 @@ export default function DesignStudioModal({
   const [showInstructions, setShowInstructions] = useState(false);
   const [resetModelView, setResetModelView] = useState(null);
   const [mobilePanel, setMobilePanel] = useState("controls");
-  const [textPosition, setTextPosition] = useState(initialTextPosition);
+  const [textSurface, setTextSurface] = useState(initialTextSurface);
   const [textSelected, setTextSelected] = useState(false);
 
   const selected = layers.find((layer) => layer.id === selectedId);
@@ -121,13 +121,13 @@ export default function DesignStudioModal({
       engravingType: "raised",
       includeMessage: false,
     });
-    setTextPosition({ x: 50, y: 78 });
+    setTextSurface(null);
   };
 
   const closeStudio = () => {
     const selectedLayer = layers.find((layer) => layer.id === selectedId) || layers[layers.length - 1];
     onSave?.(layers, selectedLayer?.sticker?.id || "none", {
-      name, message, color, font, engravingType, includeMessage, textPosition,
+      name, message, color, font, engravingType, includeMessage, textSurface,
     });
     onClose();
   };
@@ -178,28 +178,6 @@ export default function DesignStudioModal({
     window.addEventListener("pointerup", stop);
   };
 
-  const handleTextDrag = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const canvas = event.currentTarget.parentElement;
-    const rect = canvas?.getBoundingClientRect();
-    if (!rect) return;
-    const move = (moveEvent) => {
-      const nextPosition = {
-        x: Math.min(88, Math.max(12, ((moveEvent.clientX - rect.left) / rect.width) * 100)),
-        y: Math.min(88, Math.max(12, ((moveEvent.clientY - rect.top) / rect.height) * 100)),
-      };
-      setTextPosition(nextPosition);
-      onTextChange?.({ textPosition: nextPosition });
-    };
-    const stop = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", stop);
-    };
-    setTextSelected(true);
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", stop);
-  };
 
   return (
     <div className="fixed inset-0 z-[60] flex flex-col overflow-hidden bg-slate-950 text-slate-100" onPointerDown={() => setShowInstructions(false)}>
@@ -265,24 +243,21 @@ export default function DesignStudioModal({
                   onSelectLayer={selectLayer}
                   onMoveLayer={updateSurfaceLayer}
                   onResetView={setResetModelView}
+                  text={name}
+                  includeMessage={includeMessage}
+                  message={message}
+                  textColor={colorHex}
+                  textSurface={textSurface}
+                  textSelected={textSelected}
+                  onSelectText={() => { setTextSelected(true); setSelectedId(null); }}
+                  onMoveText={(surface) => {
+                    setTextSurface(surface);
+                    onTextChange?.({ textSurface: surface });
+                  }}
                 />
               </div>
             ) : (
               <img src={product.image_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            )}
-            {(name || (includeMessage && message)) && (
-              <div
-                role="button"
-                tabIndex={0}
-                onPointerDown={handleTextDrag}
-                onClick={(event) => { event.stopPropagation(); setTextSelected(true); }}
-                onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setTextSelected(true); }}
-                className={`absolute z-20 max-w-[82%] -translate-x-1/2 -translate-y-1/2 cursor-move rounded-xl bg-white/85 px-4 py-2 text-center shadow-sm backdrop-blur ${textSelected ? "ring-2 ring-blue-500 ring-offset-2" : "border border-transparent"}`}
-                style={{ left: `${textPosition.x}%`, top: `${textPosition.y}%` }}
-              >
-                {name && <div className="text-2xl font-bold" style={{ color: colorHex }}>{name}</div>}
-                {includeMessage && message && <div className="mt-1 text-xs italic text-slate-700">“{message}”</div>}
-              </div>
             )}
             {!isModelProduct && layers.map((layer) => {
               const selectedLayer = layer.id === selectedId;
