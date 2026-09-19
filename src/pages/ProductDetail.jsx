@@ -237,6 +237,7 @@ export default function ProductDetail() {
           product={product}
           name={name.trim()}
           message={message}
+          colorHex={colorHex(color)}
           color={color}
           font={font}
           engravingType={engravingType}
